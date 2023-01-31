@@ -1,0 +1,21 @@
+services:
+  gateway:
+    image: ultri/open-platform-gateway:latest
+    container_name: ultri-gateway
+    restart: on-failure
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: .env
+    networks:
+     - priv-net
+    volumes:
+      - './gateway/config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf'
+      - './gateway/config/account.key:/etc/openresty/account.key'
+      - './gateway/certs/default-service.ultri.com.key:/etc/openresty/default.key'
+      - './gateway/certs/default-service.ultri.com.pem:/etc/openresty/default.pem'  
+      - './gateway/html:/usr/local/openresty/nginx/html'
+      - './logs/gateway:/usr/local/openresty/nginx/logs'  
+networks:
+ priv-net:
+   external: false
