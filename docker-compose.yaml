@@ -1,4 +1,5 @@
 services:
+
   gateway:
     image: ultri/open-platform-gateway:latest
     container_name: ultri-gateway
@@ -16,6 +17,22 @@ services:
       - './gateway/certs/default-service.ultri.com.pem:/etc/openresty/default.pem'  
       - './gateway/html:/usr/local/openresty/nginx/html'
       - './logs/gateway:/usr/local/openresty/nginx/logs'  
+
+  api: 
+    image: ultri/open-platform-api:latest
+    container_name: open-platform-api
+    ports:
+      - '3333:3000'
+    env_file: .env
+    networks:
+     - priv-net
+    volumes:
+      - './api/config:/usr/src/api/config'
+      - './api/plugins:/usr/src/api/plugins'
+      - './api/routes:/usr/src/api/routes'
+      - './api/services:/usr/src/api/services'
+      - './api/app.js:/usr/src/api/app.js'
+
 networks:
  priv-net:
    external: false
