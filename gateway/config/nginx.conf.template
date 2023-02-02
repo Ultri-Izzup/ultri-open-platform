@@ -16,8 +16,6 @@
 # See https://github.com/openresty/docker-openresty/blob/master/README.md#nginx-config-files
 #
 
-env REDIS_HOST; // Used for caching auto-SSL certs
-
 #user  nobody;
 #worker_processes 1;
 
@@ -113,7 +111,7 @@ http {
             storage_adapter = "redis",
             -- the storage config passed to storage adapter
             storage_config = {
-                host = 'return os.getenv("REDIS_HOST")',
+                host = ${REDIS_HOST},
                 port = 6379,
                 database = 0,
                 -- Redis authentication key
