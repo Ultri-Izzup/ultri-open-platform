@@ -100,7 +100,7 @@ http {
             -- enabled_challenge_handlers = { 'http-01', 'tls-alpn-01' },
             account_key_path = "/etc/openresty/account.key",
             account_email = "billing@ultri.com",
-            domain_whitelist = { "izzup.com", "service.ultri.com","service.izzup.com", "ultri.com" },
+            domain_whitelist = { "izzup.com", "service.ultri.com","service.izzup.com", "ultri.com", "auth.izzup.com", "auth.ultri.com" },
             -- interval to wait before retrying after failed certificate request
             failure_cooloff = 300,
             -- the threshold to renew a cert before it expires, in seconds
@@ -131,7 +131,7 @@ http {
     server {
         listen 80;
         listen 443 ssl;
-        server_name .service.ultri.com .service.izzup.com .service.izzup.local .service.ultri.local;
+        server_name .service.ultri.com .service.izzup.com .service.izzup.local .service.ultri.local .auth.izzup.com .auth.ultri.com .auth.izzup.local .auth.ultri.com;
 
         # fallback certs, make sure to create them before hand
         ssl_certificate /etc/openresty/default.pem;
