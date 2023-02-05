@@ -52,7 +52,8 @@ services:
       - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
     networks:
       - ultri-net
-  worker:
+
+  authentic8worker:
     image: ultri/authentic8
     restart: unless-stopped
     command: worker
@@ -83,4 +84,3 @@ networks:
   priv-net:
     external: false
 
-    
