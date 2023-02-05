@@ -8,7 +8,7 @@ services:
       - "443:443"
     env_file: ".env"
     networks:
-      - priv-net
+      - ultri-net
     volumes:
       - "./gateway/config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
       - "./gateway/config/account.key:/etc/openresty/account.key"
@@ -24,7 +24,7 @@ services:
       - "3500:3000"
     env_file: ".env"
     networks:
-      - priv-net
+      - ultri-net
     volumes:
       - "./api/config:/usr/src/api/config"
       - "./api/plugins:/usr/src/api/plugins"
@@ -81,6 +81,6 @@ services:
       - ultri-net
 
 networks:
-  priv-net:
+  ultri-net:
     external: false
 
