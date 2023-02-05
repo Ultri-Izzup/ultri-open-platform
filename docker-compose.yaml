@@ -32,10 +32,16 @@ services:
       - "./api/services:/usr/src/api/services"
       - "./api/app.js:/usr/src/api/app.js"
 
-  server:
+  authentic8:
     image: ultri/authentic8
     restart: unless-stopped
     command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
     volumes:
       - ./auth/media:/media
       - ./auth/custom-templates:/templates
@@ -44,10 +50,18 @@ services:
     ports:
       - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
       - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
+    networks:
+      - ultri-net
   worker:
     image: ultri/authentic8
     restart: unless-stopped
     command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
     # `user: root` and the docker socket volume are optional.
     # See more for the docker socket integration here:
     # https://goauthentik.io/docs/outposts/integrations/docker
@@ -62,6 +76,8 @@ services:
       - ./auth/custom-templates:/templates
     env_file:
       - .env
+    networks:
+      - ultri-net
 
 networks:
   priv-net:
