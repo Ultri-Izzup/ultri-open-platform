@@ -16,6 +16,9 @@ services:
       - "./gateway/certs/default-service.pem:/etc/openresty/default.pem"
       - "./gateway/html:/usr/local/openresty/nginx/html"
       - "./logs/gateway:/usr/local/openresty/nginx/logs"
+    depends_on:
+      - api
+      - authentic8
 
   api:
     image: ultri/open-platform-api:latest

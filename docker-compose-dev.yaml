@@ -50,6 +50,9 @@ services:
       - "./logs/gateway:/usr/local/openresty/nginx/logs"
     depends_on:
       - redis
+      - api
+      - authentic8
+
 
   api:
     image: ultri/open-platform-api:latest
