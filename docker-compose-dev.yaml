@@ -1,4 +1,36 @@
 services:
+  postgres:
+    container_name: open-platform-postgres
+    hostname: "postgres"
+    image: "postgres:14"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "ultri", "-U", "postgres"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    ports:
+      - "5432:5432"
+    restart: always
+    env_file: .env
+    networks:
+      - ultri-net
+    volumes:
+      - postgres-data:/var/lib/postgres/data
+      - ./postgres:/docker-entrypoint-initdb.d/
+
+  redis:
+    image: redis:7.0.7
+    container_name: open-platform-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - ultri-net
+    # command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis:/data
+      
   gateway:
     image: ultri/open-platform-gateway:latest
     container_name: ultri-gateway
@@ -17,8 +49,10 @@ services:
       - "./gateway/html:/usr/local/openresty/nginx/html"
       - "./logs/gateway:/usr/local/openresty/nginx/logs"
     depends_on:
+      - redis
       - api
       - authentic8
+
 
   api:
     image: ultri/open-platform-api:latest
@@ -34,26 +68,40 @@ services:
       - "./api/routes:/usr/src/api/routes"
       - "./api/services:/usr/src/api/services"
       - "./api/app.js:/usr/src/api/app.js"
+    depends_on:
+      - redis
+      - postgres
 
   authentic8:
     image: ultri/authentic8
     restart: unless-stopped
     command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
     volumes:
       - ./auth/media:/media
       - ./auth/custom-templates:/templates
     env_file:
       - .env
     ports:
-      - "9000:9000"
-      - "9443:9443"
+      - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
+      - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
     networks:
       - ultri-net
-
-  authentic8worker:
+  worker:
     image: ultri/authentic8
     restart: unless-stopped
     command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
     # `user: root` and the docker socket volume are optional.
     # See more for the docker socket integration here:
     # https://goauthentik.io/docs/outposts/integrations/docker
@@ -71,7 +119,12 @@ services:
     networks:
       - ultri-net
 
+
+volumes:
+  # smtp4dev-data: {}
+  postgres-data: {}
+  redis: {}
+
 networks:
   ultri-net:
     external: false
-
