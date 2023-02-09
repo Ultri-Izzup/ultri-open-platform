@@ -4,7 +4,7 @@ services:
     hostname: "postgres"
     image: "postgres:14"
     healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "ultri", "-U", "postgres"]
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
       timeout: 45s
       interval: 10s
       retries: 10
