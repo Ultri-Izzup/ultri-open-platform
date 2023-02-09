@@ -51,14 +51,14 @@ services:
     depends_on:
       - redis
       - api
-      - authentic8
+      - ultri-auth
 
 
   api:
     image: ultri/open-platform-api:latest
     container_name: ultri-api
     ports:
-      - "3500:3000"
+      - "3000:3000"
     env_file: ".env"
     networks:
       - ultri-net
@@ -72,56 +72,35 @@ services:
       - redis
       - postgres
 
-  authentic8:
-    image: ultri/authentic8
+  ultri-auth:
+    image: ultri/ultri-auth
     restart: unless-stopped
-    command: server
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgres
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-    volumes:
-      - ./auth/media:/media
-      - ./auth/custom-templates:/templates
-    env_file:
-      - .env
     ports:
-      - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
-      - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
-    networks:
-      - ultri-net
-  worker:
-    image: ultri/authentic8
-    restart: unless-stopped
-    command: worker
-    environment:
-      AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgres
-      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
-      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
-    # `user: root` and the docker socket volume are optional.
-    # See more for the docker socket integration here:
-    # https://goauthentik.io/docs/outposts/integrations/docker
-    # Removing `user: root` also prevents the worker from fixing the permissions
-    # on the mounted folders, so when removing this make sure the folders have the correct UID/GID
-    # (1000:1000 by default)
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./auth/media:/media
-      - ./auth/certs:/certs
-      - ./auth/custom-templates:/templates
+      - 8080:8080
     env_file:
       - .env
     networks:
       - ultri-net
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    build:
+      target: development
+    restart: always
+    env_file: .env
+    ports:
+      # Change the number before : to the port the web interface should be accessible on
+      - '5000:80'
+      # Change the number before : to the port the SMTP and IMAP server should be accessible on
+      - '25:25'
+      - '143:143'
+    volumes:
+      # This is where smtp4dev stores the database..
+        - smtp4dev-data:/smtp4dev
 
 
 volumes:
-  # smtp4dev-data: {}
+  smtp4dev-data: {}
   postgres-data: {}
   redis: {}
 
