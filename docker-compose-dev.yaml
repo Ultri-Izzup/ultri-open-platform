@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: open-platform-postgres
+    container_name: ultri-postgres
     hostname: "postgres"
     image: "postgres:14"
     healthcheck:
@@ -20,7 +20,7 @@ services:
 
   redis:
     image: redis:7.0.7
-    container_name: open-platform-redis
+    container_name: ultri-redis
     restart: always
     ports:
       - "6379:6379"
@@ -73,14 +73,25 @@ services:
       - postgres
 
   ultri-auth:
-    image: ultri/ultri-auth
-    restart: unless-stopped
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:4.3
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
-      - 8080:8080
-    env_file:
-      - .env
+      - 3567:3567
+    container_name: ultri-auth
+    env_file: ".env"
+    environment: 
+      - POSTGRESQL_TABLE_SCHEMA=ultri_auth
     networks:
       - ultri-net
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/0.0.0.0/3567 && echo -e "GET /hello HTTP/1.1\r\nhost: 0.0.0.0:3567\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "Hello"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   smtp4dev:
     image: rnwood/smtp4dev:v3
@@ -88,6 +99,8 @@ services:
       target: development
     restart: always
     env_file: .env
+    networks:
+      - ultri-net
     ports:
       # Change the number before : to the port the web interface should be accessible on
       - '5000:80'
@@ -107,3 +120,4 @@ volumes:
 networks:
   ultri-net:
     external: false
+    driver: bridge
