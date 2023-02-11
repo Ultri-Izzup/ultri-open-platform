@@ -24,7 +24,7 @@ services:
     image: ultri/open-platform-api:latest
     container_name: ultri-api
     ports:
-      - "3500:3000"
+      - "3000:3000"
     env_file: ".env"
     networks:
       - ultri-net
@@ -36,16 +36,28 @@ services:
       - "./api/app.js:/usr/src/api/app.js"
 
   ultri-auth:
-    image: ultri/ultri-auth
-    restart: unless-stopped
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:4.3
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
-      - 8080:8080
-    env_file:
-      - .env
+      - 3567:3567
+    container_name: ultri-auth
+    env_file: ".env"
+    environment: 
+      - POSTGRESQL_TABLE_SCHEMA=ultri_auth
     networks:
       - ultri-net
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/0.0.0.0/3567 && echo -e "GET /hello HTTP/1.1\r\nhost: 0.0.0.0:3567\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "Hello"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   ultri-net:
     external: false
+    driver: bridge
 
