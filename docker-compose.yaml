@@ -37,9 +37,6 @@ services:
 
   ultri-auth:
     image: registry.supertokens.io/supertokens/supertokens-postgresql:4.3
-    depends_on:
-      postgres:
-        condition: service_healthy
     ports:
       - 3567:3567
     container_name: ultri-auth
