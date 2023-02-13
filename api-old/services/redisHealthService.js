@@ -1,8 +1,8 @@
-import fp from 'fastify-plugin';
+const fp = require('fastify-plugin');
 
 const RedisHealthService = (redis) => {
 
-    console.log('RedisHealthService loaded')
+    console.log('RedisHealthService')
 
     const ping = async () => {
 
@@ -14,7 +14,7 @@ const RedisHealthService = (redis) => {
     return { ping }
 }
 
-export default fp((fastify, options, next) => {
+module.exports = fp((fastify, options, next) => {
 
     fastify.decorate('redisHealthService', RedisHealthService(fastify.redis))
     next()

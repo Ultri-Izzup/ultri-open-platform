@@ -1,10 +1,10 @@
 "use strict";
-const fp = require("fastify-plugin");
-const fastifyRedis = require('@fastify/redis')
+import fp from "fastify-plugin";
+import fastifyRedis from "@fastify/redis";
 
-const configuration = require("../config/redis");
-
-module.exports = fp(function(fastify, opts, done) {
-  fastify.register(fastifyRedis, { url: configuration.redisUri, /* other redis options */ })
+export default fp(function(server, opts, done) {
+  server.register(fastifyRedis, {
+    url: server.config.REDIS_URI /* other redis options */,
+  });
   done();
 });
