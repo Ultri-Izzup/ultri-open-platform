@@ -46,9 +46,22 @@ async function healthRoutes(server, options) {
       },
     },
     async (request, reply) => {
-      return {
-        status: "healthy",
-      };
+      let status = "FAIL";
+
+      const dbCheck = await server.postgresHealthService.getNow();
+
+      const currentTime = new Date().getTime();
+      const dbCurrentTime = new Date(dbCheck.current_timestamp).getTime();
+
+      const drift = Math.abs(currentTime - dbCurrentTime);
+
+      if (drift < 1000) {
+        status = "OK";
+      } else {
+        status = "DRIFT-DETECTED";
+      }
+
+      return { status };
     }
   );
   server.get(

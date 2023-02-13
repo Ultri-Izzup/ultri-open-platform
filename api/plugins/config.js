@@ -18,7 +18,8 @@ async function configPlugin(server, options, done) {
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_ID",
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_SECRET",
       "CORS_ORIGIN_URL",
-      "REDIS_URI"
+      "REDIS_URI",
+      "POSTGRES_URI"
     ],
     properties: {
       HTTP_PORT: {
@@ -66,6 +67,9 @@ async function configPlugin(server, options, done) {
         type: "string",
       },
       REDIS_URI: {
+        type: "string"
+      },
+      POSTGRES_URI: {
         type: "string"
       }
     },

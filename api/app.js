@@ -2,6 +2,7 @@ import Fastify from "fastify";
 
 // Import global plugins
 import config from "./plugins/config.js";
+import swagger from "./plugins/swagger.js";
 import auth from "./plugins/auth.js";
 import redis from "./plugins/redis.js";
 
@@ -19,12 +20,13 @@ export default async function appFramework() {
   // Register Postgres
 
   // Register Redis
-  //fastify.register(redis);
+  fastify.register(redis);
 
   // Register SuperTokens middleware, handles everything under `/auth`
   fastify.register(auth);  
 
   // Register Swagger
+  fastify.register(swagger);
 
 
   // Register the default index route.
