@@ -3,7 +3,7 @@ import Fastify from "fastify";
 // Import global plugins
 import config from "./plugins/config.js";
 import auth from "./plugins/auth.js";
-
+import swagger from "./plugins/swagger.js";
 import redis from "./plugins/redis.js";
 
 // Import routes
