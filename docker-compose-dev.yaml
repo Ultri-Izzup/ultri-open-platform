@@ -55,19 +55,22 @@ services:
 
 
   api:
-    image: ultri/open-platform-api:latest
+    # image: ultri/open-platform-api:latest
+    image: ultri-api2
+    command: ["npm", "run", "dev"]
+    # command: ["npm", "run", "dev:debug"]
     container_name: ultri-api
     ports:
-      - "3000:3000"
+      - "3001:3001"
     env_file: ".env"
     networks:
       - ultri-net
     volumes:
-      - "./api/config:/usr/src/api/config"
-      - "./api/plugins:/usr/src/api/plugins"
-      - "./api/routes:/usr/src/api/routes"
-      - "./api/services:/usr/src/api/services"
-      - "./api/app.js:/usr/src/api/app.js"
+      - "./api/config:/usr/src/app/config"
+      - "./api/plugins:/usr/src/app/plugins"
+      - "./api/routes:/usr/src/app/routes"
+      - "./api/services:/usr/src/app/services"
+      - "./api/app.js:/usr/src/app/app.js"
     depends_on:
       - redis
       - postgres
@@ -95,8 +98,6 @@ services:
 
   smtp4dev:
     image: rnwood/smtp4dev:v3
-    build:
-      target: development
     restart: always
     env_file: .env
     networks:

@@ -1,25 +1,20 @@
-import fp from "fastify-plugin";
+const fp = require("fastify-plugin");
 
-import swagger from "@fastify/swagger"
-import swaggerUi from '@fastify/swagger-ui';
+module.exports = fp(async function(fastify, opts, done) {
+  await fastify.register(require("@fastify/swagger"));
 
-export default fp(async function(server, opts, done) {
-  await server.register(swagger);
-
-  await server.register(swaggerUi, {
+  await fastify.register(require('@fastify/swagger-ui'), {
     routePrefix: '/documentation',
-    stripBasePath: false,
     swagger: {
         info: {
           title: 'Ultri Open Platform API',
           description: 'Open Platform API used for Izzup.com',
           version: '0.1.0'
         },
-        host: 'service.ultri.com',
-        schemes: ['https','http'],
+        host: 'localhost:3000',
+        schemes: ['http'],
         consumes: ['application/json'],
         produces: ['application/json'],
-        
       },
 
     uiConfig: {

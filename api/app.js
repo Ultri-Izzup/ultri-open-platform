@@ -1,29 +1,47 @@
-'use strict'
+import Fastify from "fastify";
 
-const path = require('path')
-const AutoLoad = require('@fastify/autoload')
+// Import global plugins
+import config from "./plugins/config.js";
+import auth from "./plugins/auth.js";
+import swagger from "./plugins/swagger.js";
+import redis from "./plugins/redis.js";
+import postgres from "./plugins/postgres.js";
 
-//const redisConfig = require('./config/redis')
+// Import routes
+import indexRoute from "./routes/index.js";
+import healthRoutes from "./routes/health.js";
 
-module.exports = async function (fastify, opts) {
-  // Place here your custom code!
-  //fastify.register(require('@fastify/redis'),  { url: redisConfig.redisUri } )
-  //fastify.register(require('@fastify/redis'), { url: redisConfig.redisUri })
+export default async function appFramework() {
+  const fastify = Fastify({ logger: true });
+  
+  // App config, environment variables are mapped to config.
+  // You shouldn't call env vars directly past this point or elsewhere in the code.
+  fastify.register(config); 
 
-  // Do not touch the following lines
+  // Register Postgres
+  fastify.register(postgres);
 
-  // This loads all plugins defined in plugins
-  // those should be support plugins that are reused
-  // through your application
-  fastify.register(AutoLoad, {
-    dir: path.join(__dirname, 'plugins'),
-    options: Object.assign({}, opts)
-  })
+  // Register Redis
+  fastify.register(redis);
 
-  // This loads all plugins defined in routes
-  // define your routes in one of these
-  fastify.register(AutoLoad, {
-    dir: path.join(__dirname, 'routes'),
-    options: Object.assign({}, opts)
-  })
+  // Register SuperTokens middleware, handles everything under `/auth`
+  fastify.register(auth);  
+
+  // Register Swagger
+  fastify.register(swagger);
+
+
+  // Register the default index route.
+  // If HTML is desired for the indes it should be handled by the gateway.
+  fastify.register(indexRoute);
+
+  // Register the health routes.
+  // These should be protected from the public
+  fastify.register(healthRoutes);
+
+
+
+  await fastify.ready();
+
+  return fastify;
 }

@@ -1,20 +1,32 @@
-const fp = require('fastify-plugin');
+import fp  from 'fastify-plugin';
 
 const PostgresHealthService = (postgres) => {
 
-    console.log('PostgresHealthService')
+    console.log('PostgresHealthService', postgres)
+
+
 
     const getNow = async () => {
-        const nowtime = await postgres.one('SELECT CURRENT_TIMESTAMP')
-        console.log(nowtime)
-        return nowtime;
+
+        const client = await postgres.connect();
+
+        try {
+            const { rows } = await client.query(
+                'SELECT CURRENT_TIMESTAMP'
+            )
+            // Note: avoid doing expensive computation here, this will block releasing the client
+            return rows[0]
+          } finally {
+            // Release the client immediately after query resolves, or upon error
+            client.release()
+          }
+
     }
 
     return { getNow }
 }
 
-module.exports = fp((fastify, options, next) => {
-
-    fastify.decorate('postgresHealthService', PostgresHealthService(fastify.postgres))
+export default fp((server, options, next) => {
+    server.decorate('postgresHealthService', PostgresHealthService(server.pg))
     next()
 })
