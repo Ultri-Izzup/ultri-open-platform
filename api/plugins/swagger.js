@@ -3,10 +3,10 @@ import fp from "fastify-plugin";
 import swagger from "@fastify/swagger"
 import swaggerUi from '@fastify/swagger-ui';
 
-export default fp(async function(fastify, opts, done) {
-  await fastify.register(swagger);
+export default fp(async function(server, opts, done) {
+  await server.register(swagger);
 
-  await fastify.register(swaggerUi, {
+  await server.register(swaggerUi, {
     routePrefix: '/documentation',
     stripBasePath: false,
     swagger: {

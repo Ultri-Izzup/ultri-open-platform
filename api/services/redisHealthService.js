@@ -14,8 +14,8 @@ const RedisHealthService = (redis) => {
     return { ping }
 }
 
-export default fp((fastify, options, next) => {
+export default fp((server, options, next) => {
 
-    fastify.decorate('redisHealthService', RedisHealthService(fastify.redis))
+    server.decorate('redisHealthService', RedisHealthService(server.redis))
     next()
 })

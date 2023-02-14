@@ -1,11 +1,11 @@
 "use strict";
 import fp from "fastify-plugin";
-import pgPromise from "pg-promise";
+import fastifyPostgres from "@fastify/postgres";
 
-const pgp = pgPromise({/* Initialization Options */});
+export default fp(function(server, opts, done) {
+  server.register(fastifyPostgres, {
+    connectionString: server.config.POSTGRES_URI /* other postgres options */,
+  });
 
-module.exports = fp(function(fastify, opts, done) {
-  const db = pgp(fastify.config.POSTGRES_URI);
-  fastify.decorate("postgres", db);
   done();
 });

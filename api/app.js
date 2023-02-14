@@ -5,6 +5,7 @@ import config from "./plugins/config.js";
 import auth from "./plugins/auth.js";
 import swagger from "./plugins/swagger.js";
 import redis from "./plugins/redis.js";
+import postgres from "./plugins/postgres.js";
 
 // Import routes
 import indexRoute from "./routes/index.js";
@@ -18,6 +19,7 @@ export default async function appFramework() {
   fastify.register(config); 
 
   // Register Postgres
+  fastify.register(postgres);
 
   // Register Redis
   fastify.register(redis);

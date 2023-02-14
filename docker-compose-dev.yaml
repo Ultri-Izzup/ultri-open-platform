@@ -57,7 +57,8 @@ services:
   api:
     # image: ultri/open-platform-api:latest
     image: ultri-api2
-    command: ["npm", "run", "dev:debug"]
+    command: ["npm", "run", "dev"]
+    # command: ["npm", "run", "dev:debug"]
     container_name: ultri-api
     ports:
       - "3001:3001"

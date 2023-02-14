@@ -1,8 +1,10 @@
 import fastifyPlugin from "fastify-plugin";
 import redisHealthServicePlugin from "../services/redisHealthService.js";
+import postgresHealthServicePlugin from "../services/postgresHealthService.js";
 
 async function healthRoutes(server, options) {
   server.register(redisHealthServicePlugin);
+  server.register(postgresHealthServicePlugin);
 
   server.get(
     "/health",
@@ -49,6 +51,7 @@ async function healthRoutes(server, options) {
       let status = "FAIL";
 
       const dbCheck = await server.postgresHealthService.getNow();
+      console.log('DBCHECK', dbCheck)
 
       const currentTime = new Date().getTime();
       const dbCurrentTime = new Date(dbCheck.current_timestamp).getTime();
