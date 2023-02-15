@@ -7,6 +7,7 @@ import Session from "supertokens-node/recipe/session/index.js";
 import Passwordless from "supertokens-node/recipe/passwordless/index.js";
 import EmailPassword from "supertokens-node/recipe/emailpassword/index.js";
 import ThirdPartyEmailPassword from "supertokens-node/recipe/thirdpartyemailpassword/index.js";
+import Dashboard from "supertokens-node/recipe/dashboard/index.js";
 import {
   plugin,
   errorHandler,
@@ -51,6 +52,9 @@ async function auth(server, options) {
         ],
       }),
       Session.init(), // initializes session features
+      Dashboard.init({
+        apiKey: server.config.ULTRI_SUPERTOKENS_DASHBOARD_API_KEY
+      }),
     ],
   });
 

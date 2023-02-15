@@ -2,10 +2,22 @@
   <router-view />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 
-export default defineComponent({
-  name: 'App'
+import SuperTokens from 'supertokens-web-js';
+import Session from 'supertokens-web-js/recipe/session';
+import Passwordless from 'supertokens-web-js/recipe/passwordless'
+
+SuperTokens.init({
+    appInfo: {
+        apiDomain: "https://service.local.izzup.com",
+        apiBasePath: "/auth",
+        appName: "Izzup",
+    },
+    recipeList: [
+        Session.init(),
+        Passwordless.init(),
+    ],
 });
+
 </script>
