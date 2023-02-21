@@ -15,7 +15,7 @@ const path = require('path');
 module.exports = configure(function (/* ctx */) {
   return {
     eslint: {
-      // fix: true,
+      fix: true,
       // include = [],
       // exclude = [],
       // rawOptions = {},
@@ -60,7 +60,7 @@ module.exports = configure(function (/* ctx */) {
         node: 'node16'
       },
 
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -92,7 +92,7 @@ module.exports = configure(function (/* ctx */) {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
     devServer: {
-      // https: true
+      https: true,
       open: true // opens browser window automatically
     },
 
@@ -112,7 +112,7 @@ module.exports = configure(function (/* ctx */) {
       iconSet: 'mdi-v6',
 
       // Quasar plugins
-      plugins: []
+      plugins: ['Dialog']
     },
 
     // animations: 'all', // --- includes all animations

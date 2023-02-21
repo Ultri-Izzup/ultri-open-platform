@@ -10,6 +10,7 @@ import postgres from "./plugins/postgres.js";
 // Import routes
 import indexRoute from "./routes/index.js";
 import healthRoutes from "./routes/health.js";
+import memberRoutes from "./routes/member.js";
 
 export default async function appFramework() {
   const fastify = Fastify({ logger: true });
@@ -18,28 +19,30 @@ export default async function appFramework() {
   // You shouldn't call env vars directly past this point or elsewhere in the code.
   fastify.register(config); 
 
-  // Register Postgres
+  // Postgres
   fastify.register(postgres);
 
-  // Register Redis
+  // Redis
   fastify.register(redis);
 
-  // Register SuperTokens middleware, handles everything under `/auth`
+  // SuperTokens middleware, handles everything under `/auth`
   fastify.register(auth);  
 
-  // Register Swagger
+  // Swagger
   fastify.register(swagger);
 
 
-  // Register the default index route.
+  // Default index route.
   // If HTML is desired for the indes it should be handled by the gateway.
   fastify.register(indexRoute);
 
-  // Register the health routes.
+  // Health routes.
   // These should be protected from the public
   fastify.register(healthRoutes);
 
-
+  // Member routes.
+  // These routes are protected.
+  fastify.register(memberRoutes);
 
   await fastify.ready();
 

@@ -8,6 +8,7 @@ async function configPlugin(server, options, done) {
       "HTTP_PORT",
       "SUPERTOKENS_CONNECTION_URI",
       "SUPERTOKENS_API_KEY",
+      "ULTRI_SUPERTOKENS_DASHBOARD_API_KEY",
       "SUPERTOKENS_APPNAME",
       "SUPERTOKENS_API_DOMAIN",
       "SUPERTOKENS_API_BASE_PATH",
@@ -34,6 +35,9 @@ async function configPlugin(server, options, done) {
         type: "string",
       },
       SUPERTOKENS_API_KEY: {
+        type: "string",
+      },
+      ULTRI_SUPERTOKENS_DASHBOARD_API_KEY: {
         type: "string",
       },
       SUPERTOKENS_APPNAME: {

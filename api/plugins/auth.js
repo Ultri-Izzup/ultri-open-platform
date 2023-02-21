@@ -7,6 +7,7 @@ import Session from "supertokens-node/recipe/session/index.js";
 import Passwordless from "supertokens-node/recipe/passwordless/index.js";
 import EmailPassword from "supertokens-node/recipe/emailpassword/index.js";
 import ThirdPartyEmailPassword from "supertokens-node/recipe/thirdpartyemailpassword/index.js";
+import Dashboard from "supertokens-node/recipe/dashboard/index.js";
 import {
   plugin,
   errorHandler,
@@ -30,7 +31,8 @@ async function auth(server, options) {
     },
     recipeList: [
       Passwordless.init({
-        flowType: "USER_INPUT_CODE_AND_MAGIC_LINK",
+        // flowType: "USER_INPUT_CODE_AND_MAGIC_LINK",
+        flowType: "USER_INPUT_CODE",
         contactMethod: "EMAIL_OR_PHONE",
       }),
       EmailPassword.init(), // initializes signin / sign up features
@@ -51,13 +53,16 @@ async function auth(server, options) {
         ],
       }),
       Session.init(), // initializes session features
+      Dashboard.init({
+        apiKey: server.config.ULTRI_SUPERTOKENS_DASHBOARD_API_KEY
+      }),
     ],
   });
 
   // we register a CORS route to allow requests from the frontend
   server.register(cors, {
     origin: server.config.CORS_ORIGIN_URL,
-    allowedHeaders: ["Content-Type", ...supertokens.getAllCORSHeaders()],
+    allowedHeaders: ["Content-Type", "anti-csrf", "rid", "fdi-version", "authorization", "st-auth-mode"],
     methods: ["GET", "PUT", "POST", "DELETE"],
     credentials: true,
   });
