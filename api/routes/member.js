@@ -11,6 +11,7 @@ async function memberRoutes(server, options) {
   server.get(
     "/member",
     {
+      preHandler: verifySession(),
       schema: {
         description: "Return member info",
         tags: ["member"],
