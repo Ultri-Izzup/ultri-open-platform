@@ -31,7 +31,8 @@ async function auth(server, options) {
     },
     recipeList: [
       Passwordless.init({
-        flowType: "USER_INPUT_CODE_AND_MAGIC_LINK",
+        // flowType: "USER_INPUT_CODE_AND_MAGIC_LINK",
+        flowType: "USER_INPUT_CODE",
         contactMethod: "EMAIL_OR_PHONE",
       }),
       EmailPassword.init(), // initializes signin / sign up features
@@ -61,7 +62,7 @@ async function auth(server, options) {
   // we register a CORS route to allow requests from the frontend
   server.register(cors, {
     origin: server.config.CORS_ORIGIN_URL,
-    allowedHeaders: ["Content-Type", ...supertokens.getAllCORSHeaders()],
+    allowedHeaders: ["Content-Type", "anti-csrf", "rid", "fdi-version", "authorization", "st-auth-mode"],
     methods: ["GET", "PUT", "POST", "DELETE"],
     credentials: true,
   });
