@@ -7,6 +7,7 @@ import Session from "supertokens-node/recipe/session/index.js";
 import Passwordless from "supertokens-node/recipe/passwordless/index.js";
 import EmailPassword from "supertokens-node/recipe/emailpassword/index.js";
 import ThirdPartyEmailPassword from "supertokens-node/recipe/thirdpartyemailpassword/index.js";
+import { SMTPService } from "supertokens-node/recipe/passwordless/emaildelivery/index.js";
 import Dashboard from "supertokens-node/recipe/dashboard/index.js";
 import {
   plugin,
@@ -34,6 +35,21 @@ async function auth(server, options) {
         // flowType: "USER_INPUT_CODE_AND_MAGIC_LINK",
         flowType: "USER_INPUT_CODE",
         contactMethod: "EMAIL_OR_PHONE",
+        emailDelivery: {
+          service: new SMTPService({
+            smtpSettings: {
+              host: "smtp4dev",
+              authUsername: "smtp4dev", // this is optional. In case not given, from.email will be used
+              password: "smtp4dev",
+              port: 25,
+              from: {
+                name: "Izzup",
+                email: "members@izzup.com",
+              },
+              secure: false,
+            },
+          }),
+        },
       }),
       EmailPassword.init(), // initializes signin / sign up features
       ThirdPartyEmailPassword.init({
@@ -54,7 +70,7 @@ async function auth(server, options) {
       }),
       Session.init(), // initializes session features
       Dashboard.init({
-        apiKey: server.config.ULTRI_SUPERTOKENS_DASHBOARD_API_KEY
+        apiKey: server.config.ULTRI_SUPERTOKENS_DASHBOARD_API_KEY,
       }),
     ],
   });
@@ -62,7 +78,14 @@ async function auth(server, options) {
   // we register a CORS route to allow requests from the frontend
   server.register(cors, {
     origin: server.config.CORS_ORIGIN_URL,
-    allowedHeaders: ["Content-Type", "anti-csrf", "rid", "fdi-version", "authorization", "st-auth-mode"],
+    allowedHeaders: [
+      "Content-Type",
+      "anti-csrf",
+      "rid",
+      "fdi-version",
+      "authorization",
+      "st-auth-mode",
+    ],
     methods: ["GET", "PUT", "POST", "DELETE"],
     credentials: true,
   });
