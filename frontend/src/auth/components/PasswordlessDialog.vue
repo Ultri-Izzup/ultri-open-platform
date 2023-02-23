@@ -84,7 +84,7 @@ const validateCode = (otp) => {
 const onEmailSubmit = () => {
   emailSubmitted.value = true;
   console.log('EMAIL: ', email.value);
-  sendCode(email.value);
+  sendEmailCode(email.value);
   view.value = 'enterCode'
 };
 
@@ -119,7 +119,7 @@ const onOKClick = () => {
   // ...and it will also hide the dialog automatically
 };
 
-async function sendCode(email) {
+async function sendEmailCode(email) {
   try {
     let response = await createCode({
       email,

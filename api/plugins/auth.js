@@ -38,15 +38,15 @@ async function auth(server, options) {
         emailDelivery: {
           service: new SMTPService({
             smtpSettings: {
-              host: "smtp4dev",
-              authUsername: "smtp4dev", // this is optional. In case not given, from.email will be used
-              password: "smtp4dev",
-              port: 25,
+              host: server.config.SMTP_HOST,
+              authUsername: server.config.SMTP_USER, // this is optional. In case not given, from.email will be used
+              password: server.config.SMTP_PASSWORD,
+              port: server.config.SMTP_PORT,
               from: {
-                name: "Izzup",
-                email: "members@izzup.com",
+                name: server.config.SMTP_FROM,
+                email: server.config.SMTP_EMAIL,
               },
-              secure: false,
+              secure: server.config.SMTP_SECURE,
             },
           }),
         },

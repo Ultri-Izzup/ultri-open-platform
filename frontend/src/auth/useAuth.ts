@@ -1,10 +1,20 @@
 import { ref } from 'vue';
 
-export default function useAuth() {
+import Session from 'supertokens-web-js/recipe/session';
 
-  const authMember = ref(null);
+export default function useAuth() {
+  // The authenticated user
+  const user = ref(null);
+
+  const emit = defineEmits(['signedOut']);
+
+  const signOut = async () => {
+    await Session.signOut();
+    emit('signedOut', true);
+  };
 
   return {
-    authMember
-  }
+    user,
+    signOut,
+  };
 }
