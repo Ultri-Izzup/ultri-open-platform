@@ -1,7 +1,7 @@
 <template>
   <q-page class="row items-center justify-evenly">
     <div class="">
-      <q-btn label="Enter" @click="showPasswordlessDialog()"></q-btn>
+      <q-btn :label="$t('nav.enter')" @click="showPasswordlessDialog()"></q-btn>
     </div>
   </q-page>
 </template>
