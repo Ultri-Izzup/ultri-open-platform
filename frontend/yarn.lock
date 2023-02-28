@@ -2921,6 +2921,14 @@ supertokens-website@^16.0.0:
     browser-tabs-lock "^1.2.14"
     supertokens-js-override "^0.0.4"
 
+supertokens-website@^16.0.1:
+  version "16.0.1"
+  resolved "https://registry.yarnpkg.com/supertokens-website/-/supertokens-website-16.0.1.tgz#bc17be64a72dd05e0e50956f5d294584588ea36f"
+  integrity sha512-IOiMVABP9d95lGoCKuZPQxx6hJCaETFIpLsspULbqwDpgSj7K2UkBWTTZeAxdKkEpaOJW9i2GcF2AgNTuYOjWw==
+  dependencies:
+    browser-tabs-lock "^1.2.14"
+    supertokens-js-override "^0.0.4"
+
 supports-color@^7.1.0:
   version "7.2.0"
   resolved "https://registry.npmjs.org/supports-color/-/supports-color-7.2.0.tgz"
