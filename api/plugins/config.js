@@ -20,7 +20,14 @@ async function configPlugin(server, options, done) {
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_SECRET",
       "CORS_ORIGIN_URL",
       "REDIS_URI",
-      "POSTGRES_URI"
+      "POSTGRES_URI",
+      "SMTP_HOST",
+      "SMTP_USER",
+      "SMTP_PASSWORD",
+      "SMTP_PORT",
+      "SMTP_FROM",
+      "SMTP_EMAIL",
+      "SMTP_SECURE"
     ],
     properties: {
       HTTP_PORT: {
@@ -75,7 +82,29 @@ async function configPlugin(server, options, done) {
       },
       POSTGRES_URI: {
         type: "string"
+      },
+      SMTP_HOST: {
+        type: "string"
+      },
+      SMTP_USER: {
+        type: "string"
+      },
+      SMTP_PASSWORD: {
+        type: "string"
+      },
+      SMTP_PORT: {
+        type: "string"
+      },
+      SMTP_FROM: {
+        type: "string"
+      },
+      SMTP_EMAIL: {
+        type: "string"
+      },
+      SMTP_SECURE: {
+        type: "boolean"
       }
+
     },
   };
 
