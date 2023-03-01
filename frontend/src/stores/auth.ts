@@ -98,31 +98,37 @@ export const useAuthStore = defineStore('auth', {
             this.router.push(this.targetUrl);
           }
 
+          return { status: 'OK' };
+
         } else if (response.status === 'INCORRECT_USER_INPUT_CODE_ERROR') {
-          // the user entered an invalid OTP
-          window.alert(
-            'Wrong OTP! Please try again. Number of attempts left: ' +
-              (response.maximumCodeInputAttempts -
-                response.failedCodeInputAttemptCount)
-          );
+          return {
+            status: 'INCORRECT_USER_INPUT_CODE_ERROR',
+            maximumCodeInputAttempts: response.maximumCodeInputAttempts,
+            failedCodeInputAttemptCount: response.failedCodeInputAttemptCount
+          }
         } else if (response.status === 'EXPIRED_USER_INPUT_CODE_ERROR') {
           // it can come here if the entered OTP was correct, but has expired because
           // it was generated too long ago.
-          window.alert(
-            'Old OTP entered. Please regenerate a new one and try again'
-          );
+          return {
+            status: 'EXPIRED_USER_INPUT_CODE_ERROR'
+          }
         } else {
           // this can happen if the user tried an incorrect OTP too many times.
-          window.alert('Login failed. Please try again');
-          window.location.assign('/auth');
+          return {
+            status: 'LOGIN_FAILED_ERROR'
+          }
         }
       } catch (err) {
         console.log('ERROR', err);
         if (err.isSuperTokensGeneralError === true) {
           // this may be a custom error message sent from the API by you.
-          window.alert(err.message);
+          return {
+            status: err.message
+          }
         } else {
-          window.alert('Oops! Something went wrong 3.');
+          return {
+            status: 'LOGIN_FAILED'
+          }
         }
       }
     },

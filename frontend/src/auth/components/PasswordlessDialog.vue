@@ -4,15 +4,19 @@
       <q-form @submit="onEmailSubmit" @reset="onEmailReset">
         <q-card-section>
           <div class="dialog-header row">
-            {{ $t('auth.passwordless.dialog.email-form-title') }}
+            <div class="col">
+              {{ $t('auth.passwordless.dialog.email-form-title') }}
+            </div>
             <q-space></q-space>
-            <q-btn
-              icon="mdi-close"
-              round
-              dense
-              v-close-popup
-              @click="auth.setTargetUrl(null)"
-            ></q-btn>
+            <div>
+              <q-btn
+                icon="mdi-close"
+                round
+                dense
+                v-close-popup
+                @click="auth.setTargetUrl(null)"
+              ></q-btn>
+            </div>
           </div>
           <div class="dialog-body">
             {{ $t('auth.passwordless.dialog.email-form-body') }}
@@ -26,7 +30,7 @@
           ></q-input>
         </q-card-section>
         <!-- buttons example -->
-        <q-card-actions align="right">
+        <q-card-actions align="center">
           <q-btn
             icon="mdi-email-fast-outline"
             color="primary"
@@ -41,15 +45,19 @@
       <q-form @submit="onCodeSubmit" @reset="onCodeReset">
         <q-card-section>
           <div class="dialog-header row">
-            {{ $t('auth.passwordless.dialog.code-form-title') }}
+            <div class="col">
+              {{ $t('auth.passwordless.dialog.code-form-title') }}
+            </div>
             <q-space></q-space>
-            <q-btn
-              icon="mdi-close"
-              round
-              dense
-              v-close-popup
-              @click="auth.setTargetUrl(null)"
-            ></q-btn>
+            <div>
+              <q-btn
+                icon="mdi-close"
+                round
+                dense
+                v-close-popup
+                @click="auth.setTargetUrl(null)"
+              ></q-btn>
+            </div>
           </div>
           <div class="dialog-body">
             {{ $t('auth.passwordless.dialog.code-form-body') }}
@@ -59,9 +67,11 @@
               :label="$t('auth.passwordless.dialog.code-form-email-hint')"
               v-model="otp"
             ></q-input>
+            <div v-if="codeError" class="text-negative text-bold">{{ codeError }}</div>
           </q-card-section>
         </q-card-section>
-        <q-card-actions align="right">
+        <q-card-actions align="center">
+
           <q-btn
             icon="mdi-login-variant"
             color="primary"
@@ -69,6 +79,12 @@
             :label="$t('auth.passwordless.dialog.code-form-button')"
             :disable="!signinEnabled"
           ></q-btn>
+
+
+
+        </q-card-actions>
+        <q-card-actions align="center">
+          <q-btn no-caps flat @click="setForResend" :label="$t('auth.passwordless.dialog.request-new-code')" class="optional-form-action"></q-btn>
         </q-card-actions>
       </q-form>
     </q-card>
@@ -80,9 +96,14 @@ import { ref, computed, watch } from 'vue';
 import { useDialogPluginComponent } from 'quasar';
 
 import { useAuthStore } from '../../stores/auth';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 const auth = useAuthStore();
 
 const props = defineProps({});
+
 const email = ref(null);
 const validEmail = ref(false);
 const emailSubmitted = ref(false);
@@ -98,6 +119,8 @@ const signinEnabled = computed(() => {
 });
 
 const view = ref('enterEmail');
+
+const codeError = ref(null);
 
 const reset = () => {
   email.value = null;
@@ -116,7 +139,7 @@ defineEmits([
   'ok',
 ]);
 
-const onEmailSubmit = () => {
+const onEmailSubmit = async () => {
   emailSubmitted.value = true;
   auth.sendEmailLogin(email.value);
   view.value = 'enterCode';
@@ -126,16 +149,51 @@ const onEmailReset = () => {
   email.value = null;
 };
 
-const onCodeSubmit = () => {
+const onCodeSubmit = async () => {
   codeSubmitted.value = true;
-  auth.handleOTP(otp.value);
-  reset();
-  onDialogOK();
+  try {
+    const result = await auth.handleOTP(otp.value);
+    console.log(result)
+
+    switch(result.status) {
+      case 'OK':
+        reset();
+        onDialogOK();
+        break;
+
+      case 'INCORRECT_USER_INPUT_CODE_ERROR':
+        codeError.value = t('auth.error.INCORRECT_USER_INPUT_CODE_ERROR') + (result.maximumCodeInputAttempts - result.failedCodeInputAttemptCount);
+        codeSubmitted.value = false;
+        break;
+
+      case 'EXPIRED_USER_INPUT_CODE_ERROR':
+        codeError.value = t('auth.error.EXPIRED_USER_INPUT_CODE_ERROR');
+        codeSubmitted.value = false;
+        break;
+
+      case 'LOGIN_FAILED_ERROR':
+        codeError.value = null ;
+        codeSubmitted.value = false;
+        emailSubmitted.value = false;
+        view.value = 'enterEmail'
+        break;
+    }
+
+  } catch (e) {
+    console.error(e)
+  }
+
+
 };
 
 const onCodeReset = () => {
   otp.value = null;
 };
+
+const setForResend = async () => {
+  emailSubmitted.value = false;
+  view.value = 'enterEmail'
+}
 
 const { dialogRef, onDialogOK } = useDialogPluginComponent();
 // dialogRef      - Vue ref to be applied to QDialog
