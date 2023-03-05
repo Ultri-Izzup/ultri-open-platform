@@ -9,103 +9,24 @@
           Izzup
         </q-toolbar-title>
         <div>
+          <!-- DISPLAY EMAIL IF LOGGED IN -->
           <span v-if="auth.isSignedIn">{{ auth.memberEmail }}</span>
+
+          <!-- DISPLAY SIGN BUTTON  -->
           <sign-in-button v-if="!auth.isSignedIn"></sign-in-button>
-          <sign-out-button v-if="auth.isSignedIn"></sign-out-button>
-          <q-btn-dropdown
-            flat
-            dense
-            no-caps
-            dropdown-icon="mdi-web"
-            class="gt-sm"
-            ><div class="q-pa-sm">
-              <q-select
-                v-model="locale"
-                :options="locales"
-                :label="$t('nav.language')"
-                dense
-                borderless
-                emit-value
-                map-options
-                options-dense
-                style="min-width: 150px"
-              />
-            </div>
-          </q-btn-dropdown>
-          <q-btn
-            flat
-            dense
-            icon="mdi-theme-light-dark"
-            class="gt-sm"
-            @click="theme.toggleDarkMode()"
-          >
-          </q-btn>
-          <q-btn
-            flat
-            dense
-            icon="mdi-account"
-            class="gt-sm"
-            to="/member"
-          ></q-btn>
-          <q-btn-dropdown
-            flat
-            dense
-            dropdown-icon="mdi-dots-vertical"
-            class="lt-md"
-          >
-            <q-list>
-              <q-item
-                clickable
-                v-close-popup
-                @click="showPasswordlessDialog"
-                class="lt-sm"
-              >
-                <q-item-section avatar>
-                  <q-icon name="mdi-login" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Login</q-item-label>
-                </q-item-section>
-              </q-item>
 
-              <q-item icon="mdi-web" :label="$t('nav.language')" clickable>
-                <q-item-section avatar>
-                  <q-icon name="mdi-web" />
-                </q-item-section>
-                <q-item-section>
-                  <q-select
-                    v-model="locale"
-                    :options="locales"
-                    :label="$t('nav.language')"
-                    dense
-                    borderless
-                    emit-value
-                    map-options
-                    options-dense
-                    style="min-width: 150px"
-                  />
-                </q-item-section>
-              </q-item>
+          <!-- APP BUTTON-->
+          <AppsButton></AppsButton>
 
-              <q-item clickable v-close-popup @click="theme.toggleDarkMode()">
-                <q-item-section avatar>
-                  <q-icon name="mdi-theme-light-dark" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ $t('nav.darkMode') }}</q-item-label>
-                </q-item-section>
-              </q-item>
+          <!-- MESSAGING BUTTON -->
+          <ChatButton></ChatButton>
 
-              <q-item clickable v-close-popup to="/member">
-                <q-item-section avatar>
-                  <q-icon name="mdi-account" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ $t('nav.profile') }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
+          <!-- NOTIFICATIONS BUTTON -->
+          <NotificationsButton></NotificationsButton>
+
+          <!-- MEMBER BUTTON -->
+          <MemberButton></MemberButton>
+
         </div>
       </q-toolbar>
     </q-header>
@@ -120,17 +41,16 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
 import { useQuasar } from 'quasar';
-import { useI18n } from 'vue-i18n';
 
-import { useThemeStore } from '../stores/theme';
 import { useAuthStore } from '../stores/auth';
 
-import SignInButton from '../auth/components/SignInButton.vue';
-import SignOutButton from '../auth/components/SignOutButton.vue';
+import AppsButton from '../services/member/components/AppsButton.vue';
+import ChatButton from '../services/chat/components/ChatButton.vue';
+import NotificationsButton from '../services/notification/components/NotificationsButton.vue';
+import MemberButton from '../services/member/components/MemberButton.vue';
 
-import PasswordlessAuthDialog from '../auth/components/PasswordlessDialog.vue';
+import PasswordlessAuthDialog from '../services/auth/components/PasswordlessDialog.vue';
 
 import { useRouter } from 'vue-router';
 const router = useRouter();
@@ -139,29 +59,4 @@ const $q = useQuasar();
 
 const auth = useAuthStore();
 
-const showPasswordlessDialog = async () => {
-  $q.dialog({
-    component: PasswordlessAuthDialog,
-
-    // props forwarded to your custom component
-    componentProps: {},
-  }).onOk((val) => {
-    alert('Fn time')
-  });
-};
-
-
-
-const { locale } = useI18n({ useScope: 'global' });
-
-const locales = [
-  { value: 'en-US', label: 'English' },
-  { value: 'es', label: 'Español' },
-];
-
-const theme = useThemeStore();
-$q.dark.set(theme.darkMode);
-theme.$subscribe((mutation, state) => {
-  $q.dark.set(state.darkMode);
-});
 </script>

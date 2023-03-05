@@ -15,6 +15,7 @@ export const useAuthStore = defineStore('auth', {
     memberEmail: useStorage('memberEmail', null),
     memberId: useStorage('memberId', null),
     authFailed: useStorage('authFailed', false),
+    authFailedMsg: useStorage('authFailedMsg', null),
   }),
   getters: {
     isSignedIn(state) {
@@ -32,12 +33,19 @@ export const useAuthStore = defineStore('auth', {
       this.targetUrl = null;
       this.memberEmail = null;
       this.memberId = null;
+      this.authFailed = false,
+      this.authFailedMsg = null
     },
     setTargetUrl(url) {
       this.targetUrl = url;
     },
-    setAuthFailed(bool, ) {
+    setAuthFailed(bool) {
       this.authFailed = bool;
+    },
+    setAuthFailedMsg(msg) {
+      console.log(msg)
+      this.authFailedMsg = msg;
+      this.authFailed = true;
     },
     setMember(id, email) {
       this.memberId = id;
@@ -132,10 +140,10 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
-    async signOut() {
-      console.log('SIGNOUT');
+    async signOut(url='/') {
       await Session.signOut();
       this.reset();
+      this.router.push(url);
     },
     validateEmail(email) {
       return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/.test(email);

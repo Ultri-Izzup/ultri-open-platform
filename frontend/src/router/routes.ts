@@ -10,16 +10,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/member',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/member/DashboardPage.vue') }],
+    children: [{ path: '', component: () => import('src/services/member/pages/DashboardPage.vue') }],
     meta: {
       requiresAuth: true,
     },
   },
 
   {
-    path: '/member2',
+    path: '/member/settings',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [{ path: '', component: () => import('src/services/member/pages/SettingsPage.vue') }],
     meta: {
       requiresAuth: true,
     },

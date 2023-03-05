@@ -2,20 +2,18 @@
   <q-dialog ref="dialogRef" persistent>
     <q-card class="q-dialog-plugin" v-if="view == 'enterEmail'">
       <q-form @submit="onEmailSubmit" @reset="onEmailReset">
+        <q-bar>
+          {{  $t('auth.passwordless.dialog.dialog-title') }}
+          <q-space></q-space>
+
+          <q-btn dense flat icon="mdi-close" v-close-popup @click="auth.setTargetUrl(null)">
+            <q-tooltip>Close</q-tooltip>
+          </q-btn>
+        </q-bar>
         <q-card-section>
           <div class="dialog-header row">
             <div class="col">
               {{ $t('auth.passwordless.dialog.email-form-title') }}
-            </div>
-            <q-space></q-space>
-            <div>
-              <q-btn
-                icon="mdi-close"
-                round
-                dense
-                v-close-popup
-                @click="auth.setTargetUrl(null)"
-              ></q-btn>
             </div>
           </div>
           <div class="dialog-body">
@@ -95,7 +93,7 @@
 import { ref, computed, watch } from 'vue';
 import { useDialogPluginComponent } from 'quasar';
 
-import { useAuthStore } from '../../stores/auth';
+import { useAuthStore } from '../../../stores/auth';
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
