@@ -1,6 +1,6 @@
 <template>
 <div>
-  Settings Dashboard
+  {{ $t('notification') }}
 
  ID:  {{ auth.memberId }}
  EMAIL:  {{ auth.memberEmail }}

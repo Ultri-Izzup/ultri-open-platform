@@ -3,7 +3,7 @@
     <q-list>
       <q-item icon="mdi-web" :label="$t('nav.language')" clickable>
         <q-item-section avatar>
-          <q-icon name="mdi-web" />
+          <q-icon name="mdi-web" color="primary" />
         </q-item-section>
         <q-item-section>
           <q-select
@@ -22,7 +22,7 @@
 
       <q-item clickable v-close-popup @click="theme.toggleDarkMode()">
         <q-item-section avatar>
-          <q-icon name="mdi-theme-light-dark" />
+          <q-icon name="mdi-theme-light-dark" color="primary"/>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('nav.darkMode') }}</q-item-label>
@@ -31,7 +31,7 @@
 
       <q-item clickable v-close-popup to="/member">
         <q-item-section avatar>
-          <q-icon name="mdi-view-dashboard" />
+          <q-icon name="mdi-view-dashboard" color="primary" />
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('nav.dashboard') }}</q-item-label>
@@ -40,7 +40,7 @@
 
       <q-item clickable v-close-popup to="/member/settings">
         <q-item-section avatar>
-          <q-icon name="mdi-cog" />
+          <q-icon name="mdi-cog" color="primary"/>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('nav.settings') }}</q-item-label>
@@ -49,7 +49,7 @@
 
       <q-item clickable v-close-popup v-if="!auth.isSignedIn" @click="triggerSignInDialog()">
         <q-item-section avatar>
-          <q-icon name="mdi-login" />
+          <q-icon name="mdi-login" color="primary"/>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('nav.signIn') }}</q-item-label>
@@ -58,7 +58,7 @@
 
       <q-item clickable v-close-popup v-if="auth.isSignedIn" @click=" auth.signOut('/');">
         <q-item-section avatar>
-          <q-icon name="mdi-logout" />
+          <q-icon name="mdi-logout" color="primary"/>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('nav.signOut') }}</q-item-label>

@@ -1,14 +1,13 @@
 <template>
-<div>
-  {{ t('posts.headline')}}
+  <q-page class="row items-center justify-evenly">
+    <div class="">
 
- ID:  {{ auth.memberId }}
- EMAIL:  {{ auth.memberEmail }}
-</div>
 
+    </div>
+  </q-page>
 </template>
 
-<script setup language="ts">
+<script setup lang="ts">
 
 import { useI18n } from "vue-i18n";
 
@@ -16,5 +15,6 @@ import { useAuthStore } from '../../../stores/auth';
 const auth = useAuthStore();
 
 const { t } = useI18n();
+
 
 </script>

@@ -16,17 +16,28 @@
           <sign-in-button v-if="!auth.isSignedIn"></sign-in-button>
 
           <!-- APP BUTTON-->
-          <AppsButton></AppsButton>
+          <span>
+            <AppsButton></AppsButton>
+            <q-tooltip>{{ $t('apps.hint') }}</q-tooltip>
+          </span>
 
           <!-- MESSAGING BUTTON -->
-          <ChatButton></ChatButton>
+          <span>
+            <ChatButton></ChatButton>
+            <q-tooltip>{{ $t('chat.hint') }}</q-tooltip>
+          </span>
 
           <!-- NOTIFICATIONS BUTTON -->
-          <NotificationsButton></NotificationsButton>
+          <span>
+            <NotificationsButton></NotificationsButton>
+            <q-tooltip>{{ $t('notifications.hint') }}</q-tooltip>
+          </span>
 
           <!-- MEMBER BUTTON -->
-          <MemberButton></MemberButton>
-
+          <span>
+            <MemberButton></MemberButton>
+            <q-tooltip>{{ $t('member.hint') }}</q-tooltip>
+          </span>
         </div>
       </q-toolbar>
     </q-header>
@@ -58,5 +69,4 @@ const router = useRouter();
 const $q = useQuasar();
 
 const auth = useAuthStore();
-
 </script>

@@ -1,5 +1,6 @@
 export default {
   'nav.home': 'Home',
+  'nav.communicate': 'Communicate',
   'nav.enter': 'Enter',
   'nav.language': 'Language',
   'nav.darkMode': 'Dark mode',
@@ -8,10 +9,9 @@ export default {
   'nav.dashboard': 'Dashboard',
   'nav.signIn': 'Sign In',
   'nav.publish': 'Publish',
-  'nav.articles': 'Articles',
-  'nav.posts': 'Posts',
+  'nav.share': 'Share',
   'nav.sell': 'Sell',
-  'nav.classifieds': 'Classifieds',
-  'nav.shops': 'Shops',
+  'nav.govern': 'Govern',
+  'nav.secure': 'Secure'
 };
 
