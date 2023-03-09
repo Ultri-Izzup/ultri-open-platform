@@ -66,16 +66,44 @@ CREATE TYPE izzup_api.role AS ENUM (
 ALTER TYPE izzup_api.role OWNER TO izzup_api;
 
 --
--- Name: register_member(text, text, numeric); Type: FUNCTION; Schema: izzup_api; Owner: postgres
+-- Name: create_member_account(); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
 --
 
-CREATE FUNCTION izzup_api.register_member(uid_in text, email_in text, timejoined_in numeric) RETURNS text
+CREATE FUNCTION izzup_api.create_member_account() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+
+	DECLARE new_account_id BIGINT;
+	
+BEGIN
+
+
+	
+	INSERT INTO izzup_api.account(name)
+		 VALUES('Izzup Member Account')
+		 RETURNING id INTO new_account_id;
+		
+	INSERT INTO izzup_api.account_member(account_id, member_id, roles)
+		 VALUES(new_account_id, NEW.id, '{"owner"}');
+
+	RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION izzup_api.create_member_account() OWNER TO izzup_api;
+
+--
+-- Name: register_member(text, text, numeric); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE FUNCTION izzup_api.register_member(uid_in text, email_in text, time_joined_in numeric) RETURNS text
     LANGUAGE plpgsql
     AS $$
 BEGIN
     
 	INSERT INTO izzup_api.member(uid, email, created_at, last_sign_in)
-	VALUES(uuid(uid_in), email_in,  to_timestamp(timejoined_in/1000), CURRENT_TIMESTAMP)
+	VALUES(uuid(uid_in), email_in,  to_timestamp(time_joined_in/1000), CURRENT_TIMESTAMP)
 	ON CONFLICT (uid) DO UPDATE 
 	SET last_sign_in = CURRENT_TIMESTAMP, email = EXCLUDED.email;
 	
@@ -85,7 +113,7 @@ END;
 $$;
 
 
-ALTER FUNCTION izzup_api.register_member(uid_in text, email_in text, timejoined_in numeric) OWNER TO postgres;
+ALTER FUNCTION izzup_api.register_member(uid_in text, email_in text, time_joined_in numeric) OWNER TO izzup_api;
 
 SET default_tablespace = '';
 
@@ -549,6 +577,7 @@ ALTER TABLE ONLY izzup_api.service ALTER COLUMN id SET DEFAULT nextval('izzup_ap
 COPY izzup_api.account (id, uid, created_at, name) FROM stdin;
 1	1ab64e24-9ded-405a-a4b7-098be0b2342e	2023-03-07 07:16:01.27951	BrianGmail
 2	d65b801c-af12-4ffa-94bc-cd35546abc6a	2023-03-07 16:20:56.343359	BrianUltri
+3	bd83b257-f19d-4950-8191-3a8d23b2e63b	2023-03-09 09:28:48.992197	Izzup Member Account
 \.
 
 
@@ -559,6 +588,7 @@ COPY izzup_api.account (id, uid, created_at, name) FROM stdin;
 COPY izzup_api.account_member (account_id, member_id, linked_at, roles) FROM stdin;
 1	1	2023-03-07 16:35:00.35755	{reader}
 2	2	2023-03-07 16:35:00.35755	{reader}
+3	14	2023-03-09 09:28:48.992197	{owner}
 \.
 
 
@@ -587,6 +617,7 @@ COPY izzup_api.member (id, uid, created_at, email, tel, username, last_sign_in) 
 2	188715cf-6960-4b2c-8916-75e1d96d7117	2023-03-07 16:16:30.344321	bwinkers@gmail.com	\N	\N	2023-03-09 07:19:11.570979
 8	0111c14f-555e-42f8-9da5-01a5f535b442	2023-03-09 06:44:46.594	carmella.schinner42@example.org	\N	\N	2023-03-09 07:28:09.907084
 12	108e4673-1744-41e7-b155-707fcd802701	2023-03-09 08:05:23.414	madelyn.hettinger@example.org	\N	\N	2023-03-09 08:06:08.516461
+14	9bb64fa9-f765-4c5c-98bd-ec0d6acc092d	2023-03-09 09:28:39.027	electa30@example.org	\N	\N	2023-03-09 09:28:48.992197
 \.
 
 
@@ -669,7 +700,7 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 2, true);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 3, true);
 
 
 --
@@ -690,7 +721,7 @@ SELECT pg_catalog.setval('izzup_api.block_types_id_seq', 1, false);
 -- Name: member_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.member_id_seq', 13, true);
+SELECT pg_catalog.setval('izzup_api.member_id_seq', 14, true);
 
 
 --
@@ -846,6 +877,13 @@ ALTER TABLE ONLY izzup_api.member
 
 ALTER TABLE ONLY izzup_api.nugget_type
     ADD CONSTRAINT uq_nugget_type_name UNIQUE (account_id, name);
+
+
+--
+-- Name: member new_member; Type: TRIGGER; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE TRIGGER new_member AFTER INSERT ON izzup_api.member FOR EACH ROW EXECUTE FUNCTION izzup_api.create_member_account();
 
 
 --
