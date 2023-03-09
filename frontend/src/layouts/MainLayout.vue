@@ -21,12 +21,6 @@
             <q-tooltip>{{ $t('apps.hint') }}</q-tooltip>
           </span>
 
-          <!-- MESSAGING BUTTON -->
-          <span>
-            <ChatButton></ChatButton>
-            <q-tooltip>{{ $t('chat.hint') }}</q-tooltip>
-          </span>
-
           <!-- NOTIFICATIONS BUTTON -->
           <span>
             <NotificationsButton></NotificationsButton>

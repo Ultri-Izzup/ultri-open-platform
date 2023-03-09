@@ -1,0 +1,608 @@
+{
+	"info": {
+		"_postman_id": "6929baa6-f4f0-4f31-8817-5a978b5d3376",
+		"name": "Ultri Open Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27760"
+	},
+	"item": [
+		{
+			"name": "Basic server checks",
+			"item": [
+				{
+					"name": "Index Health Check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:3001",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "3001"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Gateway Index Health",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3001/auth/signinup/code",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"auth",
+								"signinup",
+								"code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Gateway Index Health Copy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/api/v1/auth/signinup/code",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"signinup",
+								"code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Health Check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/api/v1/health",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Documentation check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/api/v1/documentation",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"api",
+								"v1",
+								"documentation"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Redis Health Check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/health/redis",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"health",
+								"redis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Postgres Health Check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/health/postgres",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"health",
+								"postgres"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth flow",
+			"item": [
+				{
+					"name": "Get a signup code sent",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"memberEmail_1\", pm.variables.replaceIn('{{$randomExampleEmail}}'));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HTTP Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Returned status is OK\", function () {",
+									"    jsonData.status == \"OK\"",
+									"});",
+									"",
+									"// Set variables for deviceId and preAuthSessionId so we can use them when submitting the code",
+									"",
+									"pm.environment.set(\"deviceId_1\", jsonData.deviceId);",
+									"pm.environment.set(\"preAuthSessionId_1\", jsonData.preAuthSessionId);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{memberEmail_1}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/auth/signinup/code",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"auth",
+								"signinup",
+								"code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consume sign in code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"HTTP Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Returned status is OK\", function () {",
+									"    jsonData.status == \"OK\"",
+									"});",
+									"",
+									"",
+									"",
+									"// Set variables for deviceId and preAuthSessionId so we can use them when submitting the code",
+									"",
+									"pm.environment.set(\"userEmail_1\", jsonData.user.email);",
+									"pm.environment.set(\"userId_1\", jsonData.user.id);",
+									"pm.environment.set(\"userTimeJoined_1\", jsonData.user.timeJoined);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"deviceId\": \"{{deviceId_1}}\",\n    \"preAuthSessionId\": \"{{preAuthSessionId_1}}\",\n    \"userInputCode\": \"192579\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/auth/signinup/code/consume",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"auth",
+								"signinup",
+								"code",
+								"consume"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign out",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "session",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userInputCode\": \"683193\",\n    \"deviceId\": \"FPt03drZ2yoSiADrQtJFZm6HMeFsW3FHIlR5gwY8CcY=\",\n    \"preAuthSessionId\": \"iNlSX28NUzwaDHgpf5eWdshsoKLXvZYecZGrtBK5KmE=\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/auth/signout",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"auth",
+								"signout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Member entry",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/member",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"member"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Get a signup code sent Copy",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "rid",
+						"value": "passwordless",
+						"type": "text"
+					},
+					{
+						"key": "st-auth-mode",
+						"value": "cookie",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"bwinkers@gmail.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://local.service.ultri.com/auth/",
+					"protocol": "https",
+					"host": [
+						"local",
+						"service",
+						"ultri",
+						"com"
+					],
+					"path": [
+						"auth",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

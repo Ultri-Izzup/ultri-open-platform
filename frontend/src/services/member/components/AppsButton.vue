@@ -5,7 +5,9 @@
         <q-item-section>
           <q-item-label class="text-center menuheader">{{
             $t('nav.share').toUpperCase()
-          }}</q-item-label>
+          }}
+          <q-icon name="mdi-share" color="grey-6" size="sm" class="q-pl-sm"
+          /></q-item-label>
         </q-item-section>
       </q-item>
       <q-separator inset></q-separator>
@@ -36,7 +38,9 @@
         <q-item-section>
           <q-item-label class="text-center menuheader">{{
             $t('nav.communicate').toUpperCase()
-          }}</q-item-label>
+          }}
+          <q-icon name="mdi-account-voice" color="grey-6" size="sm" class="q-pl-sm"
+          /></q-item-label>
         </q-item-section>
       </q-item>
       <q-separator inset></q-separator>
@@ -65,9 +69,11 @@
 
       <q-item dense>
         <q-item-section>
-          <q-item-label class="text-center menuheader">{{
-            $t('nav.sell').toUpperCase()
-          }}</q-item-label>
+          <q-item-label class="text-center menuheader"
+            >{{ $t('nav.sell').toUpperCase() }}
+            <q-icon name="mdi-cash" color="grey-6" size="sm" class="q-pl-sm"
+          />
+          </q-item-label>
         </q-item-section>
       </q-item>
       <q-separator inset></q-separator>
@@ -108,50 +114,48 @@
 
       <q-separator color="grey-7"></q-separator>
 
-<q-item dense>
-  <q-item-section>
-    <q-item-label class="text-center menuheader">{{
-      $t('nav.secure').toUpperCase()
-    }}</q-item-label>
-  </q-item-section>
-</q-item>
-<q-separator inset></q-separator>
+      <q-item dense>
+        <q-item-section>
+          <q-item-label class="text-center menuheader">{{
+            $t('nav.secure').toUpperCase()
+          }}
+          <q-icon name="mdi-lock" color="grey-6" size="sm" class="q-pl-sm"
+          /></q-item-label>
+        </q-item-section>
+      </q-item>
+      <q-separator inset></q-separator>
 
-<q-item clickable v-close-popup to="/secretstash">
-  <q-item-section avatar>
-    <q-icon name="mdi-safe-square" color="primary" />
-  </q-item-section>
-  <q-item-section>
-    <q-item-label>{{ $t('secretstash.title') }}</q-item-label>
-    <q-item-label caption>{{ $t('secretstash.caption') }}</q-item-label>
-  </q-item-section>
-</q-item>
+      <q-item clickable v-close-popup to="/secretstash">
+        <q-item-section avatar>
+          <q-icon name="mdi-safe-square" color="primary" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('secretstash.title') }}</q-item-label>
+          <q-item-label caption>{{ $t('secretstash.caption') }}</q-item-label>
+        </q-item-section>
+      </q-item>
 
+      <q-separator color="grey-7"></q-separator>
 
-<q-separator color="grey-7"></q-separator>
+      <q-item dense>
+        <q-item-section>
+          <q-item-label class="text-center menuheader"
+            >{{ $t('nav.govern').toUpperCase() }}
+            <q-icon name="mdi-vote" color="grey-6" size="sm" class="q-pl-sm"
+          /></q-item-label>
+        </q-item-section>
+      </q-item>
+      <q-separator inset></q-separator>
 
-<q-item dense>
-  <q-item-section>
-    <q-item-label class="text-center menuheader">{{
-      $t('nav.govern').toUpperCase()
-    }}</q-item-label>
-  </q-item-section>
-</q-item>
-<q-separator inset ></q-separator>
-
-<q-item clickable v-close-popup to="/classifieds">
-  <q-item-section avatar>
-    <q-icon name="mdi-newspaper" color="primary" />
-  </q-item-section>
-  <q-item-section>
-    <q-item-label>{{ $t('sharedchain.title') }}</q-item-label>
-    <q-item-label caption>{{ $t('sharedchain.caption') }}</q-item-label>
-  </q-item-section>
-</q-item>
-
-
-
-
+      <q-item clickable v-close-popup to="/classifieds">
+        <q-item-section avatar>
+          <q-icon name="mdi-newspaper" color="primary" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('sharedchain.title') }}</q-item-label>
+          <q-item-label caption>{{ $t('sharedchain.caption') }}</q-item-label>
+        </q-item-section>
+      </q-item>
     </q-list>
   </q-btn-dropdown>
 </template>
