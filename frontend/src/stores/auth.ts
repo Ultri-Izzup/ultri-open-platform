@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', {
     memberId: useStorage('memberId', null),
     authFailed: useStorage('authFailed', false),
     authFailedMsg: useStorage('authFailedMsg', null),
+    createdAt: useStorage('createdAt', null)
   }),
   getters: {
     isSignedIn(state) {
@@ -95,6 +96,8 @@ export const useAuthStore = defineStore('auth', {
         if (response.status === 'OK') {
           console.log(response.user);
           this.setMember(response.user.id, response.user.email);
+
+          this.registerMember(response.user.id, response.user.email, response.user.timeJoined);
 
           if (response.createdNewUser) {
             // user sign up success

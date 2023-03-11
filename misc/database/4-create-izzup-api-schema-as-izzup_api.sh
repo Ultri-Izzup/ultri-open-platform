@@ -1,11 +1,9 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 14.6 (Debian 14.6-1.pgdg110+1)
--- Dumped by pg_dump version 14.7 (Ubuntu 14.7-0ubuntu0.22.04.1)
-
-SET statement_timeout = 0;
+#!/bin/bash
+set -e
+export PGPASSWORD=$IZZUP_DB_PASS;
+psql -v ON_ERROR_STOP=1 --username "$IZZUP_DB_USER" --dbname "$TENANT_DB_NAME" <<-EOSQL
+  BEGIN;
+    SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -19,8 +17,6 @@ SET row_security = off;
 --
 -- Name: izzup_api; Type: SCHEMA; Schema: -; Owner: izzup_api
 --
-
-CREATE SCHEMA izzup_api;
 
 
 ALTER SCHEMA izzup_api OWNER TO izzup_api;
@@ -64,33 +60,6 @@ CREATE TYPE izzup_api.role AS ENUM (
 
 
 ALTER TYPE izzup_api.role OWNER TO izzup_api;
-
---
--- Name: create_api_account(); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
---
-
-CREATE FUNCTION izzup_api.create_api_account() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-
-	DECLARE new_account_id BIGINT;
-	
-BEGIN
-
-	
-	INSERT INTO izzup_api.account(name)
-		 VALUES('Izzup Member Account for ' || NEW.user_id )
-		 RETURNING id INTO new_account_id;
-		
-	INSERT INTO izzup_api.account_member(account_id, member_uid, roles)
-		 VALUES(new_account_id, uuid(NEW.user_id), '{"owner"}');
-
-	RETURN NEW;
-END;
-$$;
-
-
-ALTER FUNCTION izzup_api.create_api_account() OWNER TO izzup_api;
 
 --
 -- Name: create_member_account(); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
@@ -187,7 +156,7 @@ ALTER SEQUENCE izzup_api.account_id_seq OWNED BY izzup_api.account.id;
 
 CREATE TABLE izzup_api.account_member (
     account_id bigint NOT NULL,
-    member_uid uuid NOT NULL,
+    member_id bigint NOT NULL,
     linked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     roles izzup_api.role[] DEFAULT '{reader}'::izzup_api.role[] NOT NULL
 );
@@ -270,18 +239,42 @@ ALTER SEQUENCE izzup_api.block_types_id_seq OWNED BY izzup_api.block_type.id;
 
 
 --
--- Name: member; Type: VIEW; Schema: izzup_api; Owner: postgres
+-- Name: member; Type: TABLE; Schema: izzup_api; Owner: izzup_api
 --
 
-CREATE VIEW izzup_api.member AS
- SELECT passwordless_users.user_id,
-    passwordless_users.email,
-    passwordless_users.phone_number,
-    passwordless_users.time_joined
-   FROM ultri_auth.passwordless_users;
+CREATE TABLE izzup_api.member (
+    id bigint NOT NULL,
+    uid uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    email character varying(250),
+    tel character varying(15),
+    username character varying(75),
+    last_sign_in timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
 
-ALTER TABLE izzup_api.member OWNER TO postgres;
+ALTER TABLE izzup_api.member OWNER TO izzup_api;
+
+--
+-- Name: member_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE SEQUENCE izzup_api.member_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE izzup_api.member_id_seq OWNER TO izzup_api;
+
+--
+-- Name: member_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER SEQUENCE izzup_api.member_id_seq OWNED BY izzup_api.member.id;
+
 
 --
 -- Name: nugget; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -532,6 +525,13 @@ ALTER TABLE ONLY izzup_api.block_type ALTER COLUMN id SET DEFAULT nextval('izzup
 
 
 --
+-- Name: member id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.member ALTER COLUMN id SET DEFAULT nextval('izzup_api.member_id_seq'::regclass);
+
+
+--
 -- Name: nugget id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -574,8 +574,6 @@ COPY izzup_api.account (id, uid, created_at, name) FROM stdin;
 1	1ab64e24-9ded-405a-a4b7-098be0b2342e	2023-03-07 07:16:01.27951	BrianGmail
 2	d65b801c-af12-4ffa-94bc-cd35546abc6a	2023-03-07 16:20:56.343359	BrianUltri
 3	bd83b257-f19d-4950-8191-3a8d23b2e63b	2023-03-09 09:28:48.992197	Izzup Member Account
-5	740e14e5-fd02-46e2-9bb7-39095f873f43	2023-03-11 05:04:32.124949	Izzup Member Account
-7	2f354d18-49c3-4ddd-a41d-2ab3d2eaac2b	2023-03-11 05:12:52.829332	Izzup Member Account for 64582d96-9dda-4117-91ba-666313852bfe
 \.
 
 
@@ -583,9 +581,10 @@ COPY izzup_api.account (id, uid, created_at, name) FROM stdin;
 -- Data for Name: account_member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
 --
 
-COPY izzup_api.account_member (account_id, member_uid, linked_at, roles) FROM stdin;
-7	64582d96-9dda-4117-91ba-666313852bfe	2023-03-11 05:12:52.829332	{owner}
-5	be0f1caf-6fec-4b23-b1bd-56b9fa80408e	2023-03-11 05:14:53.975062	{owner}
+COPY izzup_api.account_member (account_id, member_id, linked_at, roles) FROM stdin;
+1	1	2023-03-07 16:35:00.35755	{reader}
+2	2	2023-03-07 16:35:00.35755	{reader}
+3	14	2023-03-09 09:28:48.992197	{owner}
 \.
 
 
@@ -602,6 +601,19 @@ COPY izzup_api.block (id, uid, created_at, updated_at, json_data, locale, pub_at
 --
 
 COPY izzup_api.block_type (id, name, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
+--
+
+COPY izzup_api.member (id, uid, created_at, email, tel, username, last_sign_in) FROM stdin;
+1	69023f41-fbd2-4866-9bc3-ea02cacea79d	2023-03-07 16:16:30.344321	brian@ultri.com	\N	\N	2023-03-09 07:19:11.570979
+2	188715cf-6960-4b2c-8916-75e1d96d7117	2023-03-07 16:16:30.344321	bwinkers@gmail.com	\N	\N	2023-03-09 07:19:11.570979
+8	0111c14f-555e-42f8-9da5-01a5f535b442	2023-03-09 06:44:46.594	carmella.schinner42@example.org	\N	\N	2023-03-09 07:28:09.907084
+12	108e4673-1744-41e7-b155-707fcd802701	2023-03-09 08:05:23.414	madelyn.hettinger@example.org	\N	\N	2023-03-09 08:06:08.516461
+14	9bb64fa9-f765-4c5c-98bd-ec0d6acc092d	2023-03-09 09:28:39.027	electa30@example.org	\N	\N	2023-03-09 09:28:48.992197
 \.
 
 
@@ -684,7 +696,7 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 7, true);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 3, true);
 
 
 --
@@ -699,6 +711,13 @@ SELECT pg_catalog.setval('izzup_api.block_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('izzup_api.block_types_id_seq', 1, false);
+
+
+--
+-- Name: member_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
+--
+
+SELECT pg_catalog.setval('izzup_api.member_id_seq', 14, true);
 
 
 --
@@ -741,7 +760,7 @@ SELECT pg_catalog.setval('izzup_api.service_id_seq', 21, true);
 --
 
 ALTER TABLE ONLY izzup_api.account_member
-    ADD CONSTRAINT account_member_pkey PRIMARY KEY (account_id, member_uid);
+    ADD CONSTRAINT account_member_pkey PRIMARY KEY (account_id, member_id);
 
 
 --
@@ -766,6 +785,14 @@ ALTER TABLE ONLY izzup_api.block
 
 ALTER TABLE ONLY izzup_api.block_type
     ADD CONSTRAINT block_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: member member_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.member
+    ADD CONSTRAINT member_pkey PRIMARY KEY (id);
 
 
 --
@@ -833,6 +860,14 @@ ALTER TABLE ONLY izzup_api.service
 
 
 --
+-- Name: member uq_member_uid; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.member
+    ADD CONSTRAINT uq_member_uid UNIQUE (uid);
+
+
+--
 -- Name: nugget_type uq_nugget_type_name; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -841,181 +876,18 @@ ALTER TABLE ONLY izzup_api.nugget_type
 
 
 --
--- Name: SCHEMA izzup_api; Type: ACL; Schema: -; Owner: izzup_api
+-- Name: member new_member; Type: TRIGGER; Schema: izzup_api; Owner: izzup_api
 --
 
-GRANT USAGE ON SCHEMA izzup_api TO ultri_auth;
-
-
---
--- Name: FUNCTION create_api_account(); Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON FUNCTION izzup_api.create_api_account() TO ultri_auth;
-
-
---
--- Name: FUNCTION create_member_account(); Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON FUNCTION izzup_api.create_member_account() TO ultri_auth;
-
-
---
--- Name: FUNCTION register_member(uid_in text, email_in text, time_joined_in numeric); Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON FUNCTION izzup_api.register_member(uid_in text, email_in text, time_joined_in numeric) TO ultri_auth;
-
-
---
--- Name: TABLE account; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.account TO ultri_auth;
-
-
---
--- Name: SEQUENCE account_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.account_id_seq TO ultri_auth;
-
-
---
--- Name: TABLE account_member; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.account_member TO ultri_auth;
-
-
---
--- Name: TABLE block; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.block TO ultri_auth;
-
-
---
--- Name: SEQUENCE block_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.block_id_seq TO ultri_auth;
-
-
---
--- Name: TABLE block_type; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.block_type TO ultri_auth;
-
-
---
--- Name: SEQUENCE block_types_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.block_types_id_seq TO ultri_auth;
-
-
---
--- Name: TABLE member; Type: ACL; Schema: izzup_api; Owner: postgres
---
-
-GRANT ALL ON TABLE izzup_api.member TO ultri_auth;
-
-
---
--- Name: TABLE nugget; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget TO ultri_auth;
-
-
---
--- Name: TABLE nugget_block; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget_block TO ultri_auth;
-
-
---
--- Name: TABLE nugget_comment; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget_comment TO ultri_auth;
-
-
---
--- Name: SEQUENCE nugget_comment_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.nugget_comment_id_seq TO ultri_auth;
-
-
---
--- Name: SEQUENCE nugget_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.nugget_id_seq TO ultri_auth;
-
-
---
--- Name: TABLE nugget_member; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget_member TO ultri_auth;
-
-
---
--- Name: TABLE nugget_reaction; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget_reaction TO ultri_auth;
-
-
---
--- Name: TABLE nugget_type; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget_type TO ultri_auth;
-
-
---
--- Name: SEQUENCE nugget_type_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.nugget_type_id_seq TO ultri_auth;
-
-
---
--- Name: TABLE response; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.response TO ultri_auth;
-
-
---
--- Name: SEQUENCE response_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.response_id_seq TO ultri_auth;
-
-
---
--- Name: TABLE service; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.service TO ultri_auth;
-
-
---
--- Name: SEQUENCE service_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.service_id_seq TO ultri_auth;
+CREATE TRIGGER new_member AFTER INSERT ON izzup_api.member FOR EACH ROW EXECUTE FUNCTION izzup_api.create_member_account();
 
 
 --
 -- PostgreSQL database dump complete
 --
 
+
+    
+  COMMIT;
+
+EOSQL

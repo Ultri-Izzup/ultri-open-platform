@@ -8,6 +8,7 @@ export default {
   'nav.settings': 'Settings',
   'nav.dashboard': 'Dashboard',
   'nav.signIn': 'Sign In',
+  'nav.signOut': 'Sign Out',
   'nav.publish': 'Publish',
   'nav.share': 'Share',
   'nav.sell': 'Sell',
