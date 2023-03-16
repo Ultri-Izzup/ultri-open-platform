@@ -2,12 +2,12 @@
   <q-dialog ref="dialogRef" persistent>
     <q-card class="q-dialog-plugin" v-if="view == 'enterEmail'">
       <q-form @submit="onEmailSubmit" @reset="onEmailReset">
-        <q-bar>
+        <q-bar class="dialog-qbar">
           {{  $t('auth.passwordless.dialog.dialog-title') }}
           <q-space></q-space>
 
           <q-btn dense flat icon="mdi-close" v-close-popup @click="auth.setTargetUrl(null)">
-            <q-tooltip>Close</q-tooltip>
+            <q-tooltip>{{$t('nav.close')}} </q-tooltip>
           </q-btn>
         </q-bar>
         <q-card-section>
@@ -41,12 +41,12 @@
     </q-card>
     <q-card class="q-dialog-plugin" v-if="view == 'enterCode'">
       <q-form @submit="onCodeSubmit" @reset="onCodeReset">
-        <q-bar>
+        <q-bar  class="dialog-qbar">
           {{  $t('auth.passwordless.dialog.dialog-title') }}
           <q-space></q-space>
 
           <q-btn dense flat icon="mdi-close" v-close-popup @click="auth.setTargetUrl(null)">
-            <q-tooltip>Close</q-tooltip>
+            <q-tooltip>{{ $t('nav.close') }}</q-tooltip>
           </q-btn>
         </q-bar>
         <q-card-section>

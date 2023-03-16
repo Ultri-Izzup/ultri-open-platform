@@ -1,5 +1,6 @@
 export default {
   'nav.home': 'Home',
+  'nav.close': 'Close',
   'nav.communicate': 'Communicate',
   'nav.enter': 'Enter',
   'nav.language': 'Language',

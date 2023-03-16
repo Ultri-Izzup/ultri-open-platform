@@ -13,7 +13,9 @@
           <span v-if="auth.isSignedIn">{{ auth.memberEmail }}</span>
 
           <!-- DISPLAY SIGN BUTTON  -->
+          <span>
           <sign-in-button v-if="!auth.isSignedIn"></sign-in-button>
+          <q-tooltip>{{ $t('nav.signIn') }}</q-tooltip></span>
 
           <!-- APP BUTTON-->
           <span>
@@ -40,27 +42,25 @@
       <PasswordlessAuthDialog
         v-model="auth.authFailed"
       ></PasswordlessAuthDialog>
+      <WelcomeDialog
+        v-model="auth.isNewMember"
+      ></WelcomeDialog>
       <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar';
-
 import { useAuthStore } from '../stores/auth';
 
 import AppsButton from '../services/member/components/AppsButton.vue';
-import ChatButton from '../services/chat/components/ChatButton.vue';
+// import ChatButton from '../services/chat/components/ChatButton.vue';
 import NotificationsButton from '../services/notification/components/NotificationsButton.vue';
 import MemberButton from '../services/member/components/MemberButton.vue';
+import SignInButton from '../services/auth/components/SignInButton.vue';
 
 import PasswordlessAuthDialog from '../services/auth/components/PasswordlessDialog.vue';
-
-import { useRouter } from 'vue-router';
-const router = useRouter();
-
-const $q = useQuasar();
+import WelcomeDialog from '../services/member/components/WelcomeDialog.vue';
 
 const auth = useAuthStore();
 </script>

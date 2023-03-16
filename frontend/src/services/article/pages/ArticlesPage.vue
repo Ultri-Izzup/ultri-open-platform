@@ -13,6 +13,8 @@ import { useI18n } from "vue-i18n";
 import { useAuthStore } from '../../../stores/auth';
 const auth = useAuthStore();
 
+console.log(auth.member)
+
 const { t } = useI18n();
 
 
