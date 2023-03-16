@@ -27,7 +27,7 @@ export const useAuthStore = defineStore('auth', {
       return false;
     },
     member(state) {
-      return { id: state.memberId, email: state.memberEmail };
+      return { id: state.memberId, email: state.memberEmail, createdAt: state.createdAt };
     },
   },
   actions: {

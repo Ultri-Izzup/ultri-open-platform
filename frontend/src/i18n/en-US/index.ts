@@ -12,6 +12,7 @@ import posts from './posts';
 import sharedchain from './sharedchain';
 import shops from './shops';
 import secretstash from './secretstash';
+import tos from './tos';
 
 export default {
   ...apps,
@@ -27,5 +28,6 @@ export default {
   ...posts,
   ...sharedchain,
   ...shops,
-  ...secretstash
+  ...secretstash,
+  ...tos
 };
