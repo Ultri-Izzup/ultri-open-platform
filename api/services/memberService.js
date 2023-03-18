@@ -10,7 +10,7 @@ const MemberService = (postgres) => {
 
         console.log('MEMBER OBJ', memberObj)
 
-        const { email, id, timeJoined } = memberObj;
+        const { email, id, timeJoined } = memberObj;z
         console.log('UID', id);
         console.log()
 

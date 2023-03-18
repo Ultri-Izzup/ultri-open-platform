@@ -25,9 +25,50 @@ CREATE SCHEMA ultri_auth;
 
 ALTER SCHEMA ultri_auth OWNER TO ultri_auth;
 
+--
+-- Name: create_api_account(); Type: FUNCTION; Schema: ultri_auth; Owner: ultri_auth
+--
+
+CREATE FUNCTION ultri_auth.create_api_account() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+
+	DECLARE new_account_id BIGINT;
+	
+BEGIN
+
+	
+	INSERT INTO izzup_api.account(name)
+		 VALUES('Izzup Member Account')
+		 RETURNING id INTO new_account_id;
+		
+	INSERT INTO izzup_api.account_member(account_id, member_id, roles)
+		 VALUES(new_account_id, uuid(NEW.user_id), '{"owner"}');
+
+	RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION ultri_auth.create_api_account() OWNER TO ultri_auth;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: passwordless_users; Type: TABLE; Schema: ultri_auth; Owner: ultri_auth
+--
+
+CREATE TABLE ultri_auth.passwordless_users (
+    user_id character(36) NOT NULL,
+    email character varying(256),
+    phone_number character varying(256),
+    time_joined bigint NOT NULL
+);
+
+
+ALTER TABLE ultri_auth.passwordless_users OWNER TO ultri_auth;
 
 --
 -- Name: all_auth_recipe_users; Type: TABLE; Schema: ultri_auth; Owner: ultri_auth
@@ -152,20 +193,6 @@ CREATE TABLE ultri_auth.passwordless_devices (
 ALTER TABLE ultri_auth.passwordless_devices OWNER TO ultri_auth;
 
 --
--- Name: passwordless_users; Type: TABLE; Schema: ultri_auth; Owner: ultri_auth
---
-
-CREATE TABLE ultri_auth.passwordless_users (
-    user_id character(36) NOT NULL,
-    email character varying(256),
-    phone_number character varying(256),
-    time_joined bigint NOT NULL
-);
-
-
-ALTER TABLE ultri_auth.passwordless_users OWNER TO ultri_auth;
-
---
 -- Name: role_permissions; Type: TABLE; Schema: ultri_auth; Owner: ultri_auth
 --
 
@@ -274,6 +301,17 @@ ALTER TABLE ultri_auth.userid_mapping OWNER TO ultri_auth;
 --
 
 COPY ultri_auth.all_auth_recipe_users (user_id, recipe_id, time_joined) FROM stdin;
+0f165d16-fa39-4503-8b91-6c0ce1e23e7c	passwordless	1678861565737
+44febcf5-2489-4ef3-9751-b45d22bf0428	passwordless	1678939405370
+1d6a86c4-94fe-4133-a7ac-4a8eebca66d3	passwordless	1678990757370
+229c4c57-d594-46e4-aa63-27379147d0a4	passwordless	1678991389359
+236d9ca2-82ef-4ad9-b815-8f0f3e21fdb3	passwordless	1678991476216
+c041e99e-574b-49e5-937d-b4a5fbd4c78e	passwordless	1678992516669
+c11640b9-2b79-4c36-960e-74f31e634ceb	passwordless	1678992619009
+720e6556-d883-4838-b07a-79d73398d1b5	passwordless	1678992752275
+9f77b3df-ed08-4a02-a6c9-e5dbd9573c33	passwordless	1678998477147
+a3952355-71f4-434d-9f03-0c61950447b4	passwordless	1678998715610
+12b3a861-c627-4493-9243-03e6fd274995	passwordless	1678999155999
 \.
 
 
@@ -325,7 +363,7 @@ COPY ultri_auth.jwt_signing_keys (key_id, key_string, algorithm, created_at) FRO
 COPY ultri_auth.key_value (name, value, created_at_time) FROM stdin;
 refresh_token_key	1000:ae23d319f1d72fb29f04562d29d8111deea60e875f4c0521b179bbe21ba21107d8609f7d2a2e548c2a39e036f8d783d6fd3f6b7b7c910835f9d9d406f393ce49:e248cc23e9ce22d52a068264f8360783fa928176849ac0b67a43adf9ca009879b46ad9a48c166f725880ae2b7ad7347e9c6cd3a18133a695484dce66b5c384ab	1678854502416
 TELEMETRY_ID	f5aabb93-7811-47fb-8358-a5bffb6d7742	1678854502837
-FEATURE_FLAG	[]	1678855677616
+FEATURE_FLAG	[]	1679006408066
 \.
 
 
@@ -350,6 +388,17 @@ COPY ultri_auth.passwordless_devices (device_id_hash, email, phone_number, link_
 --
 
 COPY ultri_auth.passwordless_users (user_id, email, phone_number, time_joined) FROM stdin;
+0f165d16-fa39-4503-8b91-6c0ce1e23e7c	alisa_abernathy12@example.com	\N	1678861565737
+44febcf5-2489-4ef3-9751-b45d22bf0428	bwinkers@gmail.com	\N	1678939405370
+1d6a86c4-94fe-4133-a7ac-4a8eebca66d3	ascsacsa@gmail.com	\N	1678990757370
+229c4c57-d594-46e4-aa63-27379147d0a4	sdfewfw@sefw.com	\N	1678991389359
+236d9ca2-82ef-4ad9-b815-8f0f3e21fdb3	dsvdsvs@sdfwe.com	\N	1678991476216
+c041e99e-574b-49e5-937d-b4a5fbd4c78e	wqdqweq@qwdwq.com	\N	1678992516669
+c11640b9-2b79-4c36-960e-74f31e634ceb	ewrfewrf@sdf.com	\N	1678992619009
+720e6556-d883-4838-b07a-79d73398d1b5	ewfewfw@dsfvds.cvom	\N	1678992752275
+9f77b3df-ed08-4a02-a6c9-e5dbd9573c33	dfgvvdsf@werfewd.com	\N	1678998477147
+a3952355-71f4-434d-9f03-0c61950447b4	asedwqada@sadf.com	\N	1678998715610
+12b3a861-c627-4493-9243-03e6fd274995	sdfsdfds@ergerg.vom	\N	1678999155999
 \.
 
 
@@ -383,6 +432,8 @@ COPY ultri_auth.session_access_token_signing_keys (created_at_time, value) FROM 
 --
 
 COPY ultri_auth.session_info (session_handle, user_id, refresh_token_hash_2, session_data, expires_at, created_at_time, jwt_user_payload) FROM stdin;
+97dbf71f-bcca-4961-96b0-3ba01776cf03	0f165d16-fa39-4503-8b91-6c0ce1e23e7c	5f785609ae27d806bfccab65b021322ae43b73e7fea561444917a7e83109ef8e	{}	1687501565940	1678861565940	{}
+fc683f47-223d-4e11-8ea6-69466ef3ad07	12b3a861-c627-4493-9243-03e6fd274995	e4ecc8a8e9ab27de3d2b48e94bc7a64a7785443d32ef4abe4870c6019a293b00	{}	1687639156040	1678999156040	{}
 \.
 
 
@@ -695,6 +746,13 @@ CREATE INDEX role_permissions_permission_index ON ultri_auth.role_permissions US
 --
 
 CREATE INDEX user_roles_role_index ON ultri_auth.user_roles USING btree (role);
+
+
+--
+-- Name: passwordless_users new_izzup_member; Type: TRIGGER; Schema: ultri_auth; Owner: ultri_auth
+--
+
+CREATE TRIGGER new_izzup_member AFTER INSERT ON ultri_auth.passwordless_users FOR EACH ROW EXECUTE FUNCTION izzup_api.create_api_account();
 
 
 --

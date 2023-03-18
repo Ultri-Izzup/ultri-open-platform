@@ -1,5 +1,6 @@
 import fastifyPlugin from "fastify-plugin";
 import memberServicePlugin from "../services/memberService.js";
+import nuggetServicePlugin from "../services/nuggetService.js";
 
 import Passwordless from "supertokens-node/recipe/passwordless/index.js";
 import { verifySession } from "supertokens-node/recipe/session/framework/fastify/index.js";
@@ -8,6 +9,7 @@ const { SessionRequest } = st;
 
 async function memberRoutes(server, options) {
   server.register(memberServicePlugin);
+  server.register(nuggetServicePlugin);
 
   server.get(
     "/member",
@@ -33,7 +35,7 @@ async function memberRoutes(server, options) {
       };
     }
   );
-
+  /* DEPRECATED
   server.post(
     "/member/register",
     {
@@ -48,8 +50,8 @@ async function memberRoutes(server, options) {
             ping: {
               type: "string",
               description: "A 4 character string",
-            }
-          }
+            },
+          },
         },
         response: {
           200: {
@@ -65,18 +67,54 @@ async function memberRoutes(server, options) {
       },
     },
     async (req, reply) => {
-
       let userId = req.session.getUserId();
-      console.log('USERID', userId)
+      console.log("USERID", userId);
       // You can learn more about the `User` object over here https://github.com/supertokens/core-driver-interface/wiki
-      let userInfo = await Passwordless.getUserById({ userId: userId});
-       console.log('USER INFO',userInfo)
-
+      let userInfo = await Passwordless.getUserById({ userId: userId });
+      console.log("USER INFO", userInfo);
 
       const regResult = await server.memberService.registerMember(userInfo);
       console.log("REGISTER", regResult);
 
       return regResult;
+    }
+  );
+  */
+  server.get(
+    "/member/nuggets",
+    {
+      preHandler: verifySession(),
+      schema: {
+        description: "Returns nuggets belonging to the members' account",
+        tags: ["member"],
+        response: {
+          200: {
+            description: "Success Response",
+            type: "object",
+            properties: {
+              nuggets: { type: "array" },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (request.query.t) {
+        let userId = request.session.getUserId();
+        console.log(userId)
+
+        console.log(request.query.t)
+
+        const nuggets = await server.nuggetService.memberNuggets(userId, request.query.t);
+
+        console.log('NUGS', nuggets)
+
+        return {
+          nuggets: nuggets,
+        };
+      } else {
+        reply.code(400)
+      }
     }
   );
 
