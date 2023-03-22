@@ -11,6 +11,7 @@ import postgres from "./plugins/postgres.js";
 import indexRoute from "./routes/index.js";
 import healthRoutes from "./routes/health.js";
 import memberRoutes from "./routes/member.js";
+import nuggetRoutes from "./routes/nugget.js";
 
 export default async function appFramework() {
   const fastify = Fastify({ logger: true });
@@ -43,6 +44,10 @@ export default async function appFramework() {
   // Member routes.
   // These routes are protected.
   fastify.register(memberRoutes);
+
+  // Nugget routes.
+  // These routes are protected.
+  fastify.register(nuggetRoutes);
 
   await fastify.ready();
 
