@@ -103,6 +103,7 @@ async function memberRoutes(server, options) {
         let userId = request.session.getUserId();
 
         const nuggets = await server.nuggetService.getMemberNuggets(userId, request.query.t);
+        
 
         return {
           nuggets: nuggets,

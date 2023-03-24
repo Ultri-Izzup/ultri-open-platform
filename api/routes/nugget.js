@@ -27,9 +27,13 @@ async function nuggetRoutes(server, options) {
               description: "The name to use for internal management",
             },
             nuggetType: {
-                type: "string",
-                description: "The type of nugget to create",
-              },
+              type: "string",
+              description: "The type of nugget to create",
+            },
+            accountId: {
+              type: "number",
+              description: "The account to use when creating the nugget",
+            },
           },
         },
         response: {
@@ -41,7 +45,8 @@ async function nuggetRoutes(server, options) {
               publicTitle: { type: "string" },
               internalName: { type: "string" },
               nugget_type: { type: "string" },
-              createdAt: { type: "string" }
+              createdAt: { type: "string" },
+              accountId: { type: "number" }
             },
           },
         },
