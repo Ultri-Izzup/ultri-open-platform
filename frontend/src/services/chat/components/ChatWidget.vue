@@ -2,7 +2,7 @@
   <q-btn
     flat
     dense
-    icon="mdi-login"
+    icon="mdi-message"
     class="gt-xs"
     @click="triggerSignInDialog"
   ></q-btn>
@@ -10,7 +10,7 @@
 
 <script setup language="ts">
 
-import { useAuthStore } from '../../stores/auth';
+import { useAuthStore } from '../../../stores/auth';
 const auth = useAuthStore();
 
 const triggerSignInDialog = async () => {

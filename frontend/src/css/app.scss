@@ -1,4 +1,8 @@
 // app global css in SCSS form
+.dialog-qbar {
+  background-color: $primary;
+  color: white;
+}
 .dialog-header {
   font-size: x-large;
 }
@@ -8,6 +12,13 @@
 }
 .optional-form-action {
   color: gray
+}
+
+.text-menuheader {
+  color: #000 !important;
+}
+.bg-menuheader {
+  background: #444 !important;
 }
 
 //.body--light {

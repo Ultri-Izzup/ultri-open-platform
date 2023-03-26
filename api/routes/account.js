@@ -1,23 +1,21 @@
 import fastifyPlugin from "fastify-plugin";
-import memberServicePlugin from "../services/memberService.js";
-import nuggetServicePlugin from "../services/nuggetService.js";
+import accountServicePlugin from "../services/accountService.js";
 
 import Passwordless from "supertokens-node/recipe/passwordless/index.js";
 import { verifySession } from "supertokens-node/recipe/session/framework/fastify/index.js";
 import st from "supertokens-node/framework/fastify/index.js";
 const { SessionRequest } = st;
 
-async function memberRoutes(server, options) {
-  server.register(memberServicePlugin);
-  server.register(nuggetServicePlugin);
+async function accountRoutes(server, options) {
+  server.register(accountServicePlugin);
 
   server.get(
-    "/member",
+    "/account",
     {
       preHandler: verifySession(),
       schema: {
-        description: "Return member info",
-        tags: ["member"],
+        description: "Return account info",
+        tags: ["account"],
         response: {
           200: {
             description: "Success Response",
@@ -35,21 +33,21 @@ async function memberRoutes(server, options) {
       };
     }
   );
-  /* DEPRECATED
+
   server.post(
-    "/member/register",
+    "/account",
     {
       preHandler: verifySession(),
       schema: {
-        description: "Register a new or returning member",
-        tags: ["member"],
-        summary: "This updates an existing members last_signin time.",
+        description: "Create a new account",
+        tags: ["account"],
+        summary: "Add a new account to the database",
         body: {
           type: "object",
           properties: {
-            ping: {
+            name: {
               type: "string",
-              description: "A 4 character string",
+              description: "The name for the account",
             },
           },
         },
@@ -58,9 +56,9 @@ async function memberRoutes(server, options) {
             description: "Success Response",
             type: "object",
             properties: {
-              email: { type: "string" },
               uid: { type: "string" },
-              isNewMember: { type: "boolean" },
+              name: { type: "string" },
+              createdAt: { type: "string" }
             },
           },
         },
@@ -69,30 +67,27 @@ async function memberRoutes(server, options) {
     async (req, reply) => {
       let userId = req.session.getUserId();
       console.log("USERID", userId);
-      // You can learn more about the `User` object over here https://github.com/supertokens/core-driver-interface/wiki
-      let userInfo = await Passwordless.getUserById({ userId: userId });
-      console.log("USER INFO", userInfo);
 
-      const regResult = await server.memberService.registerMember(userInfo);
-      console.log("REGISTER", regResult);
+      const result = await server.accountService.createAccount(req.body, userId);
+      console.log("CREATE", result);
 
-      return regResult;
+      return result;
     }
   );
-  */
+
   server.get(
-    "/member/nuggets",
+    "/account/accounts",
     {
       preHandler: verifySession(),
       schema: {
-        description: "Returns nuggets belonging to the members' account",
-        tags: ["member"],
+        description: "Returns accounts belonging to the accounts' account",
+        tags: ["account"],
         response: {
           200: {
             description: "Success Response",
             type: "object",
             properties: {
-              nuggets: { type: "array" },
+              accounts: { type: "array" },
             },
           },
         },
@@ -102,11 +97,11 @@ async function memberRoutes(server, options) {
       if (request.query.t) {
         let userId = request.session.getUserId();
 
-        const nuggets = await server.nuggetService.getMemberNuggets(userId, request.query.t);
+        const accounts = await server.accountService.getAccountAccounts(userId, request.query.t);
         
 
         return {
-          nuggets: nuggets,
+          accounts: accounts,
         };
       } else {
         reply.code(400)
@@ -115,11 +110,11 @@ async function memberRoutes(server, options) {
   );
 
   server.get(
-    "/member/apps",
+    "/account/apps",
     {
       schema: {
-        description: "Return list of apps the member has access to",
-        tags: ["member"],
+        description: "Return list of apps the account has access to",
+        tags: ["account"],
         response: {
           200: {
             description: "Success Response",
@@ -138,11 +133,11 @@ async function memberRoutes(server, options) {
     }
   );
   server.get(
-    "/member/app/perms/:appId",
+    "/account/app/perms/:appId",
     {
       schema: {
         description: "Return permissioms for a given app.",
-        tags: ["member"],
+        tags: ["account"],
         response: {
           200: {
             description: "Success Response",
@@ -165,4 +160,4 @@ async function memberRoutes(server, options) {
   );
 }
 
-export default fastifyPlugin(memberRoutes);
+export default fastifyPlugin(accountRoutes);

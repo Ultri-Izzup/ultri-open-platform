@@ -7,7 +7,7 @@ import {
   createCode,
   consumeCode,
 } from 'supertokens-web-js/recipe/passwordless';
-import auth from 'src/i18n/en-US/auth';
+// import auth from 'src/i18n/en-US/auth';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -15,6 +15,9 @@ export const useAuthStore = defineStore('auth', {
     memberEmail: useStorage('memberEmail', null),
     memberId: useStorage('memberId', null),
     authFailed: useStorage('authFailed', false),
+    authFailedMsg: useStorage('authFailedMsg', null),
+    createdAt: useStorage('createdAt', null),
+    isNewMember: false
   }),
   getters: {
     isSignedIn(state) {
@@ -24,24 +27,38 @@ export const useAuthStore = defineStore('auth', {
       return false;
     },
     member(state) {
-      return { id: state.memberId, email: state.memberEmail };
+      return { id: state.memberId, email: state.memberEmail, createdAt: state.createdAt };
     },
   },
   actions: {
+    notNewMember() {
+      this.isNewMember = false;
+    },
     reset() {
       this.targetUrl = null;
       this.memberEmail = null;
       this.memberId = null;
+      this.authFailed = false,
+      this.authFailedMsg = null,
+      this.createdAt = null,
+      this.isNewMember = false
     },
     setTargetUrl(url) {
       this.targetUrl = url;
     },
-    setAuthFailed(bool, ) {
+    setAuthFailed(bool) {
       this.authFailed = bool;
     },
-    setMember(id, email) {
+    setAuthFailedMsg(msg) {
+      console.log(msg)
+      this.authFailedMsg = msg;
+      this.authFailed = true;
+    },
+    setMember(id, email, createdAt) {
+      console.log()
       this.memberId = id;
       this.memberEmail = email;
+      this.createdAt = createdAt;
     },
     async sendEmailLogin(email) {
       try {
@@ -67,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
         let response = await createCode({
           phoneNumber: phone,
         });
+        console.log('RESPONSE', response);
       } catch (err) {
         console.log('ERROR', err);
         if (err.isSuperTokensGeneralError === true) {
@@ -85,11 +103,13 @@ export const useAuthStore = defineStore('auth', {
         });
 
         if (response.status === 'OK') {
-          console.log(response.user);
-          this.setMember(response.user.id, response.user.email);
+          console.log('AUTHUSER', response.user);
+          const createdAt = new Date(response.user.timeJoined).toISOString();
+          this.setMember(response.user.id, response.user.email,  createdAt);
 
           if (response.createdNewUser) {
-            // user sign up success
+            this.isNewMember = true;
+            console.log('NEW MEMBER', this.isNewMember)
           } else {
             // user sign in success
           }
@@ -132,10 +152,10 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
-    async signOut() {
-      console.log('SIGNOUT');
+    async signOut(url='/') {
       await Session.signOut();
       this.reset();
+      this.router.push(url);
     },
     validateEmail(email) {
       return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/.test(email);

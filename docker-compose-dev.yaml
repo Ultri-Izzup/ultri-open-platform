@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: ultri-postgres
+    container_name: ultri-pg
     hostname: "postgres"
     image: "postgres:14"
     healthcheck:
@@ -15,7 +15,7 @@ services:
     networks:
       - ultri-net
     volumes:
-      - postgres-data:/var/lib/postgres/data
+      - pg-data:/var/lib/postgres/data
       - ./postgres:/docker-entrypoint-initdb.d/
 
   redis:
@@ -115,7 +115,7 @@ services:
 
 volumes:
   smtp4dev-data: {}
-  postgres-data: {}
+  pg-data: {}
   redis: {}
 
 networks:
