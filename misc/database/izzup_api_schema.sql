@@ -66,6 +66,36 @@ CREATE TYPE izzup_api.role AS ENUM (
 ALTER TYPE izzup_api.role OWNER TO izzup_api;
 
 --
+-- Name: create_account(character varying, uuid); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE FUNCTION izzup_api.create_account(name_in character varying, owner_uid uuid) RETURNS TABLE(id bigint, uid uuid, created_at timestamp without time zone)
+    LANGUAGE plpgsql
+    AS $$
+
+DECLARE new_account_id BIGINT;
+DECLARE new_account_uid uuid;
+DECLARE new_account_created_at timestamp without time zone;
+
+BEGIN
+    
+	INSERT INTO izzup_api.account(name, personal)
+		 VALUES(name_in, false)
+		 RETURNING izzup_api.account.id, izzup_api.account.uid, izzup_api.account.created_at INTO new_account_id, new_account_uid, new_account_created_at;
+		
+	INSERT INTO izzup_api.account_member(account_id, member_uid, roles)
+		 VALUES(new_account_id, owner_uid,  '{"owner"}');
+
+	RETURN QUERY SELECT new_account_id, new_account_uid, new_account_created_at;
+	
+	
+END; 
+$$;
+
+
+ALTER FUNCTION izzup_api.create_account(name_in character varying, owner_uid uuid) OWNER TO izzup_api;
+
+--
 -- Name: create_account_nugget(character varying, character varying, character varying, bigint, uuid); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -169,14 +199,13 @@ BEGIN
 				public_title, 
 				internal_name, 
 				nugget_type_id,
-				account_id, 
-	created_at)
+				account_id
+				)
 			VALUES (
 				$1, 
 				$2, 
 				izzup_api.get_nugget_type_id($3, null),
-				izzup_api.get_member_account($4),
-				DEFAULT
+				izzup_api.get_member_account($4)
 				)
  	RETURNING id, uid, created_at, account_id INTO id, uid, created_at, account_id;
 
@@ -197,11 +226,12 @@ CREATE FUNCTION izzup_api.get_member_account(uid_in uuid) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 BEGIN
-    
+	
 	RETURN (SELECT a.id 
 	FROM izzup_api.account_member am 
 	INNER JOIN izzup_api.account a ON a.id = am.account_id AND a.personal = true
-	WHERE am.member_uid = uid_in);
+	WHERE am.member_uid = uid_in
+	ORDER BY a.created_at LIMIT 1);
 
 	
 END; 
@@ -728,6 +758,10 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 22	1307ecdc-c8e4-4e37-b610-44686a6e474a	2023-03-22 04:59:25.634367	Izzup Member Account for d4dcff47-90a8-48ca-a04b-0cbf4b05091b	t
 23	643c8d0f-94c0-48c4-9e4e-cb39ec1fe075	2023-03-24 00:02:14.944919	Izzup Member Account for 8fe443bc-745c-460a-a9c4-0ae7b261d6c4	t
 24	a0e1d821-f86e-48f2-8a3a-aa915bac2cb0	2023-03-24 03:12:18.122234	Izzup Member Account for c8885655-74e3-4594-ad69-2419a2129458	t
+28	17792eb1-eb48-4044-a85f-edff33b49dfe	2023-03-26 19:39:25.28476	My first  account	t
+29	fa06cc56-4665-4259-9202-fe4ad473a8a8	2023-03-26 19:39:35.253513	My first  account	t
+30	d7db7fcb-4a77-4169-9823-e38958023528	2023-03-26 20:28:41.031688	My shared account	f
+31	af8db92e-aaac-4141-bfb4-4b6487c8a1a7	2023-03-26 20:28:46.285516	My shared account	f
 \.
 
 
@@ -755,6 +789,10 @@ COPY izzup_api.account_member (account_id, member_uid, linked_at, roles) FROM st
 22	d4dcff47-90a8-48ca-a04b-0cbf4b05091b	2023-03-22 04:59:25.634367	{owner}
 23	8fe443bc-745c-460a-a9c4-0ae7b261d6c4	2023-03-24 00:02:14.944919	{owner}
 24	c8885655-74e3-4594-ad69-2419a2129458	2023-03-24 03:12:18.122234	{owner}
+28	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:25.28476	{owner}
+29	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:35.253513	{owner}
+30	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:41.031688	{owner}
+31	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:46.285516	{owner}
 \.
 
 
@@ -779,40 +817,9 @@ COPY izzup_api.block_type (id, name, created_at) FROM stdin;
 --
 
 COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, public_title, internal_name, account_id, nugget_type_id) FROM stdin;
-1	6483ab49-ab4c-49db-bda0-7f86241b77b8	2023-03-18 07:14:21.587002	\N	\N	\N	Test Title	My manual created article	19	1
-2	e979f903-2112-41db-91a6-1e9ba5992b8b	2023-03-18 20:55:13.251519	\N	\N	\N	pub title	internal name	20	1
-3	313c28b7-53e2-4e72-a1c0-678344fd74ff	2023-03-19 07:08:39.27762	\N	\N	\N	My title	My interal name	21	1
-4	100c48bb-11c9-42e9-9c17-f745e1c104fa	2023-03-19 07:17:57.191144	\N	\N	\N	My Title	My project	21	1
-5	eb6189c2-75c0-49fc-8785-23f5829dc633	2023-03-19 07:29:43.626876	\N	\N	\N	My Title	My project	21	1
-6	f4d8e2be-1d15-4c74-a799-8bfbfc6ae5cd	2023-03-19 07:29:52.749567	\N	\N	\N	My Title	My project	21	1
-7	97d24d4b-50a3-486e-b0f8-e8edd3f86f67	2023-03-19 07:30:35.619995	\N	\N	\N	My Title	My project	21	1
-12	0acfcacf-4197-4362-b32c-981a616d49f3	2023-03-22 07:52:32.740789	\N	\N	\N	sefesd	sdvfdsv	4	1
-13	2b9a3730-e559-4c93-a361-804bab9e0156	2023-03-22 07:54:43.640456	\N	\N	\N	my public  title	my internal name	4	1
-14	b5da85e5-70e2-4b27-96d3-0e2f264b299f	2023-03-22 07:54:57.313791	\N	\N	\N	my publicfweferwf  title	my internal name	4	1
-15	b315e190-3834-404c-9cc0-fb1daaeb497d	2023-03-22 07:55:45.857405	\N	\N	\N	my publicfweferwf  title	my internal name	4	1
-16	b542a1ee-dc65-4b50-850e-d8725045a2bf	2023-03-22 07:55:56.684406	\N	\N	\N	my publicfweferwf  title	my internal name	4	1
-17	2ce7da09-1f77-46de-9387-9254d0e6aeb1	2023-03-22 07:58:19.398409	\N	\N	\N	wtf my publicfweferwf  title	my internal name	4	1
-18	2ebb071d-cfca-4252-8ceb-85ffc3268285	2023-03-22 07:58:48.607709	\N	\N	\N	wtf my publicfweferwf  title	my internal name	4	1
-19	8b2c7d6a-984a-48ac-9fa2-e75017fd77ca	2023-03-22 08:07:39.914684	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-20	626eeda7-a6f8-4f94-9fc5-72bf2191f47e	2023-03-22 08:11:01.715122	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-21	e4d0f1e1-4389-4b84-926a-d99d9c0ecfe7	2023-03-22 08:25:33.390408	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-22	26252844-ea4e-42fc-b7e5-759ff31f4408	2023-03-22 08:25:48.733737	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-23	7fb84f43-3bcc-4983-8550-1f3c2b188cf4	2023-03-22 08:27:26.787095	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-24	04d07434-d5d7-47ed-8718-0a4f0b293bb3	2023-03-22 08:30:17.85302	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-25	6762a10c-db3b-4537-84e3-cd8655694afc	2023-03-22 08:30:27.486608	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-26	b52814a4-5061-422c-8bb8-5b0e10983f27	2023-03-22 08:30:37.157345	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-27	1c7142cc-10c9-45df-8489-de556201a023	2023-03-22 08:35:15.532269	\N	\N	\N	fucking shiteferwf  title	my internal name	4	1
-28	8960dca9-6fdd-4c69-a6f2-724a7060ad83	2023-03-22 08:41:51.343469	\N	\N	\N	fufrvfdvdcking shiteferwf  title	my internal name	22	1
-29	687fb430-b214-4ceb-b7bb-ac67b4138b77	2023-03-23 23:43:26.164506	\N	\N	\N	fufrefwefwevfdvdcking shiteferwf  title	my internal name	22	1
-30	0f71581b-22df-4200-acbe-01178371822f	2023-03-24 00:06:15.734291	\N	\N	\N	My new Title	My project	23	1
-31	03808531-7505-4dd3-95e1-8c2403e215a0	2023-03-24 00:27:38.333378	\N	\N	\N	My new Title	My project	23	1
-32	b1991238-94d1-4abf-8d1d-81476fc85662	2023-03-24 03:14:54.464137	\N	\N	\N	My new Title	My project	24	1
-33	44d4e084-fb02-42d6-a21b-5e13f84f9df9	2023-03-24 05:21:19.43538	\N	\N	\N	my title	my name	24	1
-34	53a05af4-5da9-48d2-be21-8c588682cd01	2023-03-24 06:17:18.53037	\N	\N	\N	my title	my name	24	1
-35	b9788612-0dc0-4f93-a428-52009ede4e6f	2023-03-24 06:17:57.495983	\N	\N	\N	my title	my name	24	1
-36	80a10665-3ced-4ea8-9862-493f8c2952b0	2023-03-24 06:51:38.307512	\N	\N	\N	My latest Title	My project	24	1
-39	0d4933f1-b0b0-4eba-8118-4665f9ce0e9f	2023-03-24 07:53:34.936936	\N	\N	\N	My newest Title	My project	24	1
-40	c456f0d1-570f-4209-847d-b80f6a124c1c	2023-03-24 08:12:53.067749	\N	\N	\N	My newest Title	My project	24	1
+41	26f0f0ff-62a3-4abc-ab4c-f354a72ee104	2023-03-24 21:51:44.353823	\N	\N	\N	My newest Title	My project	24	1
+42	3cb20534-e881-4eaf-89b1-418b7cdcb47c	2023-03-24 21:52:21.345467	\N	\N	\N	My next Title	My next project	24	1
+44	1e472044-ad49-4120-a655-0101a40219f2	2023-03-26 20:27:35.046921	\N	\N	\N	My next Title	My next project	24	1
 \.
 
 
@@ -898,7 +905,7 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 24, true);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 31, true);
 
 
 --
@@ -926,7 +933,7 @@ SELECT pg_catalog.setval('izzup_api.nugget_comment_id_seq', 1, false);
 -- Name: nugget_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 40, true);
+SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 44, true);
 
 
 --

@@ -12,6 +12,8 @@ import indexRoute from "./routes/index.js";
 import healthRoutes from "./routes/health.js";
 import memberRoutes from "./routes/member.js";
 import nuggetRoutes from "./routes/nugget.js";
+import accountRoutes from "./routes/account.js";
+
 
 export default async function appFramework() {
   const fastify = Fastify({ logger: true });
@@ -37,17 +39,17 @@ export default async function appFramework() {
   // If HTML is desired for the indes it should be handled by the gateway.
   fastify.register(indexRoute);
 
-  // Health routes.
-  // These should be protected from the public
+  // Health routes. These should be protected from the public
   fastify.register(healthRoutes);
 
-  // Member routes.
-  // These routes are protected.
+  // Member routes. These routes are protected.
   fastify.register(memberRoutes);
 
-  // Nugget routes.
-  // These routes are protected.
+  // Nugget routes. These routes are protected.
   fastify.register(nuggetRoutes);
+
+  // Nugget routes. These routes are protected.
+  fastify.register(accountRoutes);
 
   await fastify.ready();
 
