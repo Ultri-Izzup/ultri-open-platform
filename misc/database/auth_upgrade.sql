@@ -31,3 +31,6 @@ ALTER FUNCTION ultri_auth.create_api_account() OWNER TO ultri_auth;
 
 CREATE TRIGGER new_izzup_member AFTER INSERT ON ultri_auth.passwordless_users FOR EACH ROW EXECUTE FUNCTION izzup_api.create_api_account();
 
+GRANT USAGE ON SCHEMA ultri_auth TO izzup_api;
+GRANT SELECT ON ultri_auth.passwordless_users  TO izzup_api
+
