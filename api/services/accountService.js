@@ -3,15 +3,17 @@ import fp from "fastify-plugin";
 const AccountService = (postgres) => {
   console.log("AccountService", postgres);
 
-  const getMemberAccounts = async (member_uid, account_type) => {
+  const getMemberAccounts = async (member_uid) => {
     const client = await postgres.connect();
 
     try {
       const {
         rows,
       } = await client.query(
-        'SELECT uid,"createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","accountType" FROM izzup_api.member_accounts($1, $2)',
-        [member_uid, account_type]
+        ` SELECT email, "memberUid", "accountLinkedAt", "accountCreatedAt", "accountUid"
+        FROM izzup_api.member_accounts
+               WHERE "memberUid" = $1`,
+        [member_uid]
       );
 
       // Note: avoid doing expensive computation here, this will block releasing the client
