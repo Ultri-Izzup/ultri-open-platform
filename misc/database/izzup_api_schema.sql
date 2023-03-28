@@ -435,7 +435,7 @@ ALTER SEQUENCE izzup_api.block_types_id_seq OWNED BY izzup_api.block_type.id;
 
 
 --
--- Name: member; Type: VIEW; Schema: izzup_api; Owner: postgres
+-- Name: member; Type: VIEW; Schema: izzup_api; Owner: izzup_api
 --
 
 CREATE VIEW izzup_api.member AS
@@ -446,7 +446,25 @@ CREATE VIEW izzup_api.member AS
    FROM ultri_auth.passwordless_users;
 
 
-ALTER TABLE izzup_api.member OWNER TO postgres;
+ALTER TABLE izzup_api.member OWNER TO izzup_api;
+
+--
+-- Name: member_accounts; Type: VIEW; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE VIEW izzup_api.member_accounts AS
+ SELECT m.email,
+    am.member_uid AS "memberUid",
+    am.linked_at AS "accountLinkedAt",
+    a.uid AS "accountUid",
+    a.created_at AS "accountCreatedAt",
+    am.roles
+   FROM ((izzup_api.account_member am
+     JOIN izzup_api.account a ON ((a.id = am.account_id)))
+     JOIN izzup_api.member m ON ((m.member_uid = am.member_uid)));
+
+
+ALTER TABLE izzup_api.member_accounts OWNER TO izzup_api;
 
 --
 -- Name: nugget; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -762,6 +780,7 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 29	fa06cc56-4665-4259-9202-fe4ad473a8a8	2023-03-26 19:39:35.253513	My first  account	t
 30	d7db7fcb-4a77-4169-9823-e38958023528	2023-03-26 20:28:41.031688	My shared account	f
 31	af8db92e-aaac-4141-bfb4-4b6487c8a1a7	2023-03-26 20:28:46.285516	My shared account	f
+32	bbcc7919-956a-4e7a-8db1-7b5770acaa10	2023-03-28 04:42:34.097693	My shared account	f
 \.
 
 
@@ -793,6 +812,7 @@ COPY izzup_api.account_member (account_id, member_uid, linked_at, roles) FROM st
 29	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:35.253513	{owner}
 30	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:41.031688	{owner}
 31	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:46.285516	{owner}
+32	c8885655-74e3-4594-ad69-2419a2129458	2023-03-28 04:42:34.097693	{owner}
 \.
 
 
@@ -820,6 +840,7 @@ COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, publi
 41	26f0f0ff-62a3-4abc-ab4c-f354a72ee104	2023-03-24 21:51:44.353823	\N	\N	\N	My newest Title	My project	24	1
 42	3cb20534-e881-4eaf-89b1-418b7cdcb47c	2023-03-24 21:52:21.345467	\N	\N	\N	My next Title	My next project	24	1
 44	1e472044-ad49-4120-a655-0101a40219f2	2023-03-26 20:27:35.046921	\N	\N	\N	My next Title	My next project	24	1
+45	de073b73-ff62-4410-8570-838795b44ee9	2023-03-28 04:42:26.033553	\N	\N	\N	My next Title	My next project	24	1
 \.
 
 
@@ -905,7 +926,7 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 31, true);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 32, true);
 
 
 --
@@ -933,7 +954,7 @@ SELECT pg_catalog.setval('izzup_api.nugget_comment_id_seq', 1, false);
 -- Name: nugget_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 44, true);
+SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 45, true);
 
 
 --
@@ -1054,11 +1075,27 @@ ALTER TABLE ONLY izzup_api.service
 
 
 --
+-- Name: account uq_account_uid; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.account
+    ADD CONSTRAINT uq_account_uid UNIQUE (uid);
+
+
+--
 -- Name: nugget_type uq_nugget_type_name; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
 --
 
 ALTER TABLE ONLY izzup_api.nugget_type
     ADD CONSTRAINT uq_nugget_type_name UNIQUE (account_id, name);
+
+
+--
+-- Name: nugget uq_nugget_uid; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.nugget
+    ADD CONSTRAINT uq_nugget_uid UNIQUE (uid);
 
 
 --
@@ -1153,7 +1190,7 @@ GRANT ALL ON SEQUENCE izzup_api.block_types_id_seq TO ultri_auth;
 
 
 --
--- Name: TABLE member; Type: ACL; Schema: izzup_api; Owner: postgres
+-- Name: TABLE member; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
 GRANT ALL ON TABLE izzup_api.member TO ultri_auth;
