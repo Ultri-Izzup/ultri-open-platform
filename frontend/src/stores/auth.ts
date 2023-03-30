@@ -17,7 +17,9 @@ export const useAuthStore = defineStore('auth', {
     authFailed: useStorage('authFailed', false),
     authFailedMsg: useStorage('authFailedMsg', null),
     createdAt: useStorage('createdAt', null),
-    isNewMember: false
+    isNewMember: false,
+    currentAccount: useStorage('currentAccount', null),
+    accountPerms: useStorage('accountPerms', null),
   }),
   getters: {
     isSignedIn(state) {
@@ -41,7 +43,9 @@ export const useAuthStore = defineStore('auth', {
       this.authFailed = false,
       this.authFailedMsg = null,
       this.createdAt = null,
-      this.isNewMember = false
+      this.isNewMember = false,
+      this.currentAccount = null,
+      this.accountPerms = null
     },
     setTargetUrl(url) {
       this.targetUrl = url;
