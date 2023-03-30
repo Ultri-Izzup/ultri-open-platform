@@ -455,10 +455,12 @@ ALTER TABLE izzup_api.member OWNER TO izzup_api;
 CREATE VIEW izzup_api.member_accounts AS
  SELECT m.email,
     am.member_uid AS "memberUid",
-    am.linked_at AS "accountLinkedAt",
+    am.roles,
+    a.name AS "accountName",
     a.uid AS "accountUid",
-    a.created_at AS "accountCreatedAt",
-    am.roles
+    a.personal,
+    am.linked_at AS "accountLinkedAt",
+    a.created_at AS "accountCreatedAt"
    FROM ((izzup_api.account_member am
      JOIN izzup_api.account a ON ((a.id = am.account_id)))
      JOIN izzup_api.member m ON ((m.member_uid = am.member_uid)));

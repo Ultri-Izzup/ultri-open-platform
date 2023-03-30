@@ -10,7 +10,7 @@ const AccountService = (postgres) => {
       const {
         rows,
       } = await client.query(
-        ` SELECT email, "memberUid", "accountLinkedAt", "accountCreatedAt", "accountUid"
+        ` SELECT *
         FROM izzup_api.member_accounts
                WHERE "memberUid" = $1`,
         [member_uid]
