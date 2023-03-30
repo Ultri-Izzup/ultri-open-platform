@@ -4,7 +4,7 @@ import nuggetServicePlugin from "../services/nuggetService.js";
 import { verifySession } from "supertokens-node/recipe/session/framework/fastify/index.js";
 
 async function nuggetRoutes(server, options) {
-  // server.register(nuggetServicePlugin);
+  server.register(nuggetServicePlugin);
 
   // CREATE a Nugget
   server.post(
@@ -60,6 +60,78 @@ async function nuggetRoutes(server, options) {
       console.log("CREATE", result);
 
       return result;
+    }
+  );
+
+  server.get(
+    "/nugget/member",
+    {
+      preHandler: verifySession(),
+      schema: {
+        description: "Returns nuggets belonging to the members' account",
+        tags: ["member"],
+        response: {
+          200: {
+            description: "Success Response",
+            type: "object",
+            properties: {
+              nuggets: { type: "array" },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (request.query.t) {
+        let userId = request.session.getUserId();
+
+        const nuggets = await server.nuggetService.getMemberNuggets(
+          userId,
+          request.query.t
+        );
+
+        return {
+          nuggets: nuggets,
+        };
+      } else {
+        reply.code(400);
+      }
+    }
+  );
+
+  server.get(
+    "/nugget/account",
+    {
+      preHandler: verifySession(),
+      schema: {
+        description: "Returns nuggets belonging to the account",
+        tags: ["member"],
+        response: {
+          200: {
+            description: "Success Response",
+            type: "object",
+            properties: {
+              nuggets: { type: "array" },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (request.query.t) {
+        let userId = request.session.getUserId();
+
+        const nuggets = await server.nuggetService.getAccountNuggets(
+          userId,
+          request.query.t
+        );
+
+        return {
+          nuggets: nuggets,
+        };
+      } else {
+        reply.code(400);
+      }
     }
   );
 }
