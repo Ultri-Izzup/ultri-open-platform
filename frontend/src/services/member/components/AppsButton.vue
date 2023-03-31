@@ -1,6 +1,30 @@
 <template>
   <q-btn-dropdown flat dense no-caps dropdown-icon="mdi-dots-grid">
     <q-list>
+      <q-separator color="grey-7"></q-separator>
+     <!-- <q-item bordered dense>
+        <q-item-section>
+          <q-item-label class="text-center menuheader">{{
+            $t('nav.account').toUpperCase()
+          }}
+          <q-icon name="mdi-account" color="grey-6" size="sm" class="q-pl-sm"
+          /></q-item-label>
+        </q-item-section>
+      </q-item>
+      <q-separator inset></q-separator>
+
+      <q-item clickable v-close-popup :to="{ name: 'member-articles' }">
+        <q-item-section avatar>
+          <q-icon name="mdi-file-document" color="primary" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('account.title') }}</q-item-label>
+          <q-item-label caption>{{ $t('account.caption') }}</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-separator color="grey-7"></q-separator>
+      -->
       <q-item bordered dense>
         <q-item-section>
           <q-item-label class="text-center menuheader">{{
@@ -12,9 +36,9 @@
       </q-item>
       <q-separator inset></q-separator>
 
-      <q-item clickable v-close-popup :to="{ name: 'member-articles' }">
+      <q-item clickable v-close-popup>
         <q-item-section avatar>
-          <q-icon name="mdi-file-document" color="primary" />
+          <q-icon name="mdi-account-switch" color="primary" />
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('articles.title') }}</q-item-label>

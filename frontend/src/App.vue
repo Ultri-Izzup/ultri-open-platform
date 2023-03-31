@@ -14,9 +14,9 @@ const auth = useAuthStore();
 
 router.beforeEach(async (to, from) => {
   if (to.meta.requiresAuth) {
-    if (auth.memberId && auth.memberId.length > 0) {
+    if (auth.memberUid && auth.memberUid.length > 0) {
       // user is logged in
-      console.log('ACCESS GRANTED', auth.isSignedIn, auth.memberId);
+      console.log('ACCESS GRANTED', auth.isSignedIn, auth.memberUid);
       //return true;
     } else {
       // user has not logged in yet

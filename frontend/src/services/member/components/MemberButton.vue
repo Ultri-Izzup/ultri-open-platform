@@ -1,7 +1,25 @@
 <template>
   <q-btn-dropdown flat dense no-caps dropdown-icon="mdi-account">
     <q-list>
-      <q-item icon="mdi-web" :label="$t('nav.language')" clickable>
+
+      <q-expansion-item
+        expand-separator
+        icon="mdi-account-switch"
+        :label="account.currentAccountName"
+        :caption="$t('account.caption')"
+        expand-icon="mdi-menu-down"
+        v-if="auth.isSignedIn"
+      >
+        <q-card>
+          <q-card-section>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quidem, eius reprehenderit eos corrupti
+            commodi magni quaerat ex numquam, dolorum officiis modi facere maiores architecto suscipit iste
+            eveniet doloribus ullam aliquid.
+          </q-card-section>
+        </q-card>
+      </q-expansion-item>
+
+      <q-item clickable>
         <q-item-section avatar>
           <q-icon name="mdi-web" color="primary" />
         </q-item-section>
@@ -71,16 +89,21 @@
 <script setup language="ts">
 import { useAuthStore } from '../../../stores/auth';
 import { useThemeStore } from '../../../stores/theme';
+import { useAccountStore } from '../../../stores/account';
 
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 
 import { useRouter } from 'vue-router';
+
+import { ref} from 'vue';
+
 const router = useRouter();
 
 const $q = useQuasar();
 
 const auth = useAuthStore();
+const account = useAccountStore();
 
 const theme = useThemeStore();
 $q.dark.set(theme.darkMode);

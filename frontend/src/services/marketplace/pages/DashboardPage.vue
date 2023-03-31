@@ -2,7 +2,7 @@
 <div>
   Member Dashboard
 
- ID:  {{ auth.memberId }}
+ ID:  {{ auth.memberUid }}
  EMAIL:  {{ auth.memberEmail }}
 </div>
 
