@@ -5,7 +5,7 @@
     icon="mdi-bell"
     @click="auth.setAuthFailedMsg(t('auth.passwordless.dialog.notification-requires-auth'))"
     v-if="!auth.isSignedIn"
-  >auth.isSignedIn</q-btn>
+  ></q-btn>
   <q-btn
     flat
     dense

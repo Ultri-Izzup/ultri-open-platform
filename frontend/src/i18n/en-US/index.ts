@@ -5,6 +5,7 @@ import auth from './auth';
 import chat from './chat';
 import classifieds from './classifieds';
 import groups from './groups';
+import homepage from './homepage';
 import marketplace from './marketplace';
 import member from './member';
 import nav from './nav';
@@ -23,6 +24,7 @@ export default {
   ...chat,
   ...classifieds,
   ...groups,
+  ...homepage,
   ...marketplace,
   ...member,
   ...nav,

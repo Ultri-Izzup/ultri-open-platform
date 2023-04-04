@@ -1,0 +1,39 @@
+{
+    "$id": "https://www.izzup.com/schema/ArticleNugget.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "ArticleNugget",
+    "type": "object",
+    "required": ["nuggetType"]
+    "anyOf": [
+      { "required":
+        [ "publicTitle" ] },
+      { "required":
+        [ "internalName" ] }
+    ],
+    "properties": {
+      "uid": {
+         "type": "string",
+         "description": "The system-wide unique identifier."
+      },
+      "internalName": {
+        "type": "string",
+        "description": "The internal name."
+      },
+      "publicTitle": {
+        "type": "string",
+        "description": "The public title."
+      },
+      "pubAt": {
+        "description": "The date and time to allow public access.",
+        "type": "date"
+      },
+      "unPupubAt": {
+        "description": "The date and time to remove public access.",
+        "type": "date"
+      },
+      "nuggetType": {
+        "description": "The nugget type.",
+        "type": "string"
+      }
+    }
+  }
