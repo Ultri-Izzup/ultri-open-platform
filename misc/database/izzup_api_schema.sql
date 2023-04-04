@@ -361,46 +361,6 @@ CREATE TABLE izzup_api.account_member (
 ALTER TABLE izzup_api.account_member OWNER TO izzup_api;
 
 --
--- Name: block; Type: TABLE; Schema: izzup_api; Owner: izzup_api
---
-
-CREATE TABLE izzup_api.block (
-    id bigint NOT NULL,
-    uid uuid DEFAULT gen_random_uuid() NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp without time zone,
-    json_data jsonb DEFAULT '{}'::jsonb NOT NULL,
-    locale character varying(35) DEFAULT 'en-US'::character varying,
-    pub_at timestamp without time zone,
-    un_pub_at timestamp without time zone,
-    account_id bigint NOT NULL
-);
-
-
-ALTER TABLE izzup_api.block OWNER TO izzup_api;
-
---
--- Name: block_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: izzup_api
---
-
-CREATE SEQUENCE izzup_api.block_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE izzup_api.block_id_seq OWNER TO izzup_api;
-
---
--- Name: block_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: izzup_api
---
-
-ALTER SEQUENCE izzup_api.block_id_seq OWNED BY izzup_api.block.id;
-
-
---
 -- Name: block_type; Type: TABLE; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -482,25 +442,12 @@ CREATE TABLE izzup_api.nugget (
     public_title character varying(150),
     internal_name character varying(75),
     account_id bigint NOT NULL,
-    nugget_type_id bigint NOT NULL
+    nugget_type_id bigint NOT NULL,
+    blocks jsonb[] DEFAULT '{}'::jsonb[] NOT NULL
 );
 
 
 ALTER TABLE izzup_api.nugget OWNER TO izzup_api;
-
---
--- Name: nugget_block; Type: TABLE; Schema: izzup_api; Owner: izzup_api
---
-
-CREATE TABLE izzup_api.nugget_block (
-    nugget_id bigint NOT NULL,
-    blocks bigint[],
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    name character varying(75)
-);
-
-
-ALTER TABLE izzup_api.nugget_block OWNER TO izzup_api;
 
 --
 -- Name: nugget_comment; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -703,13 +650,6 @@ ALTER TABLE ONLY izzup_api.account ALTER COLUMN id SET DEFAULT nextval('izzup_ap
 
 
 --
--- Name: block id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
---
-
-ALTER TABLE ONLY izzup_api.block ALTER COLUMN id SET DEFAULT nextval('izzup_api.block_id_seq'::regclass);
-
-
---
 -- Name: block_type id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -783,6 +723,9 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 30	d7db7fcb-4a77-4169-9823-e38958023528	2023-03-26 20:28:41.031688	My shared account	f
 31	af8db92e-aaac-4141-bfb4-4b6487c8a1a7	2023-03-26 20:28:46.285516	My shared account	f
 32	bbcc7919-956a-4e7a-8db1-7b5770acaa10	2023-03-28 04:42:34.097693	My shared account	f
+33	7513acb8-41cf-4a0f-b7f6-04e9e0013ed1	2023-03-30 04:35:37.196831	My shared account	f
+34	bf676460-7d92-41e4-a954-a2f18f291d37	2023-03-30 06:11:15.637939	My shared account	f
+35	96be72ff-5b99-4525-a5c3-2fc9ec6f365a	2023-03-31 05:14:52.328446	Izzup Member Account for 386319aa-abdf-42d6-a53b-ee2cc7511a07	t
 \.
 
 
@@ -815,14 +758,9 @@ COPY izzup_api.account_member (account_id, member_uid, linked_at, roles) FROM st
 30	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:41.031688	{owner}
 31	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:46.285516	{owner}
 32	c8885655-74e3-4594-ad69-2419a2129458	2023-03-28 04:42:34.097693	{owner}
-\.
-
-
---
--- Data for Name: block; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
---
-
-COPY izzup_api.block (id, uid, created_at, updated_at, json_data, locale, pub_at, un_pub_at, account_id) FROM stdin;
+33	c8885655-74e3-4594-ad69-2419a2129458	2023-03-30 04:35:37.196831	{owner}
+34	c8885655-74e3-4594-ad69-2419a2129458	2023-03-30 06:11:15.637939	{owner}
+35	386319aa-abdf-42d6-a53b-ee2cc7511a07	2023-03-31 05:14:52.328446	{owner}
 \.
 
 
@@ -838,19 +776,13 @@ COPY izzup_api.block_type (id, name, created_at) FROM stdin;
 -- Data for Name: nugget; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
 --
 
-COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, public_title, internal_name, account_id, nugget_type_id) FROM stdin;
-41	26f0f0ff-62a3-4abc-ab4c-f354a72ee104	2023-03-24 21:51:44.353823	\N	\N	\N	My newest Title	My project	24	1
-42	3cb20534-e881-4eaf-89b1-418b7cdcb47c	2023-03-24 21:52:21.345467	\N	\N	\N	My next Title	My next project	24	1
-44	1e472044-ad49-4120-a655-0101a40219f2	2023-03-26 20:27:35.046921	\N	\N	\N	My next Title	My next project	24	1
-45	de073b73-ff62-4410-8570-838795b44ee9	2023-03-28 04:42:26.033553	\N	\N	\N	My next Title	My next project	24	1
-\.
-
-
---
--- Data for Name: nugget_block; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
---
-
-COPY izzup_api.nugget_block (nugget_id, blocks, updated_at, name) FROM stdin;
+COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, public_title, internal_name, account_id, nugget_type_id, blocks) FROM stdin;
+41	26f0f0ff-62a3-4abc-ab4c-f354a72ee104	2023-03-24 21:51:44.353823	\N	\N	\N	My newest Title	My project	24	1	{}
+42	3cb20534-e881-4eaf-89b1-418b7cdcb47c	2023-03-24 21:52:21.345467	\N	\N	\N	My next Title	My next project	24	1	{}
+44	1e472044-ad49-4120-a655-0101a40219f2	2023-03-26 20:27:35.046921	\N	\N	\N	My next Title	My next project	24	1	{}
+45	de073b73-ff62-4410-8570-838795b44ee9	2023-03-28 04:42:26.033553	\N	\N	\N	My next Title	My next project	24	1	{}
+46	d6ed7e0a-6f29-4256-a074-0da8b6321695	2023-03-30 04:35:29.098299	\N	\N	\N	My next Title	My next project	24	1	{}
+47	45219790-7fff-4456-a5f9-d0d2147da845	2023-03-30 06:09:14.194829	\N	\N	\N	My latest Title	My project	24	1	{}
 \.
 
 
@@ -928,14 +860,7 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 32, true);
-
-
---
--- Name: block_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
---
-
-SELECT pg_catalog.setval('izzup_api.block_id_seq', 1, false);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 35, true);
 
 
 --
@@ -956,7 +881,7 @@ SELECT pg_catalog.setval('izzup_api.nugget_comment_id_seq', 1, false);
 -- Name: nugget_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 45, true);
+SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 47, true);
 
 
 --
@@ -997,27 +922,11 @@ ALTER TABLE ONLY izzup_api.account
 
 
 --
--- Name: block block_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
---
-
-ALTER TABLE ONLY izzup_api.block
-    ADD CONSTRAINT block_pkey PRIMARY KEY (id, uid);
-
-
---
 -- Name: block_type block_types_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
 --
 
 ALTER TABLE ONLY izzup_api.block_type
     ADD CONSTRAINT block_types_pkey PRIMARY KEY (id);
-
-
---
--- Name: nugget_block nugget_blocks_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
---
-
-ALTER TABLE ONLY izzup_api.nugget_block
-    ADD CONSTRAINT nugget_blocks_pkey PRIMARY KEY (nugget_id);
 
 
 --
@@ -1164,20 +1073,6 @@ GRANT ALL ON TABLE izzup_api.account_member TO ultri_auth;
 
 
 --
--- Name: TABLE block; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.block TO ultri_auth;
-
-
---
--- Name: SEQUENCE block_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON SEQUENCE izzup_api.block_id_seq TO ultri_auth;
-
-
---
 -- Name: TABLE block_type; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -1203,13 +1098,6 @@ GRANT ALL ON TABLE izzup_api.member TO ultri_auth;
 --
 
 GRANT ALL ON TABLE izzup_api.nugget TO ultri_auth;
-
-
---
--- Name: TABLE nugget_block; Type: ACL; Schema: izzup_api; Owner: izzup_api
---
-
-GRANT ALL ON TABLE izzup_api.nugget_block TO ultri_auth;
 
 
 --
