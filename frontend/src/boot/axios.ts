@@ -14,7 +14,7 @@ declare module '@vue/runtime-core' {
 // "export default () => {}" function below (which runs individually
 // for each client)
 console.log(process.env.ULTRI_API_URL)
-const api = axios.create({ baseURL: 'http://localhost:3001' });
+const izzupApi = axios.create({ baseURL: 'http://localhost:3001' });
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
@@ -23,9 +23,9 @@ export default boot(({ app }) => {
   // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
   //       so you won't necessarily have to import axios in each vue file
 
-  app.config.globalProperties.$api = api;
+  app.config.globalProperties.$izzupApi = izzupApi;
   // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
   //       so you can easily perform requests against your app's API
 });
 
-export { api };
+export { izzupApi };

@@ -35,9 +35,9 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/new/article',
+    path: '/article/new',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/article/pages/EditorPage.vue'), name: 'new-article' }],
+    children: [{ path: '', component: () => import('src/services/article/pages/NewArticlePage.vue'), name: 'new-article' }],
     meta: {
 
     },

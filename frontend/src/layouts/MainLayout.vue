@@ -6,25 +6,26 @@
           <!--<q-avatar>
             <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
           </q-avatar>-->
-          Izzup
+          <span>Izzup</span>
         </q-toolbar-title>
         <div>
           <!-- DISPLAY EMAIL IF LOGGED IN -->
-          <span v-if="auth.isSignedIn">{{ auth.memberEmail }}</span>
+          <span class="gt-sm q-pr-md">{{ auth.memberEmail }}</span>
 
-          <!-- DISPLAY SIGN BUTTON  -->
+          <!-- DISPLAY SIGN BUTTON -->
           <span>
           <sign-in-button v-if="!auth.isSignedIn"></sign-in-button>
           <q-tooltip>{{ $t('nav.signIn') }}</q-tooltip></span>
 
+
           <!-- APP BUTTON-->
-          <span>
+          <span v-if="auth.isSignedIn">
             <AppsButton></AppsButton>
             <q-tooltip>{{ $t('apps.hint') }}</q-tooltip>
           </span>
 
           <!-- NOTIFICATIONS BUTTON -->
-          <span>
+          <span v-if="auth.isSignedIn">
             <NotificationsButton></NotificationsButton>
             <q-tooltip>{{ $t('notifications.hint') }}</q-tooltip>
           </span>

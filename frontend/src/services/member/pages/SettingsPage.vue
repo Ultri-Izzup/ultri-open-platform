@@ -2,7 +2,7 @@
 <div>
   {{ t('posts.headline')}}
 
- ID:  {{ auth.memberId }}
+ ID:  {{ auth.memberUid }}
  EMAIL:  {{ auth.memberEmail }}
 </div>
 

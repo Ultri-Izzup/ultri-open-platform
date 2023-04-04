@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     targetUrl: useStorage('targetUrl', null ),
     memberEmail: useStorage('memberEmail', null),
-    memberId: useStorage('memberId', null),
+    memberUid: useStorage('memberUid', null),
     authFailed: useStorage('authFailed', false),
     authFailedMsg: useStorage('authFailedMsg', null),
     createdAt: useStorage('createdAt', null),
@@ -21,13 +21,13 @@ export const useAuthStore = defineStore('auth', {
   }),
   getters: {
     isSignedIn(state) {
-      if(state.memberId &&  state.memberId.length > 0) {
+      if(state.memberUid &&  state.memberUid.length > 0) {
         return true;
       }
       return false;
     },
     member(state) {
-      return { id: state.memberId, email: state.memberEmail, createdAt: state.createdAt };
+      return { id: state.memberUid, email: state.memberEmail, createdAt: state.createdAt };
     },
   },
   actions: {
@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', {
     reset() {
       this.targetUrl = null;
       this.memberEmail = null;
-      this.memberId = null;
+      this.memberUid = null;
       this.authFailed = false,
       this.authFailedMsg = null,
       this.createdAt = null,
@@ -56,7 +56,7 @@ export const useAuthStore = defineStore('auth', {
     },
     setMember(id, email, createdAt) {
       console.log()
-      this.memberId = id;
+      this.memberUid = id;
       this.memberEmail = email;
       this.createdAt = createdAt;
     },

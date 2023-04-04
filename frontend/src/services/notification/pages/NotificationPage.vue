@@ -2,7 +2,7 @@
 <div>
   {{ $t('notification') }}
 
- ID:  {{ auth.memberId }}
+ ID:  {{ auth.memberUid }}
  EMAIL:  {{ auth.memberEmail }}
 </div>
 

@@ -10,7 +10,6 @@
     flat
     dense
     icon="mdi-bell"
-    @click="triggerSignInDialog"
     v-if="auth.isSignedIn"
   ></q-btn>
 </template>

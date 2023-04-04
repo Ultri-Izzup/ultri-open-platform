@@ -76,12 +76,12 @@ async function accountRoutes(server, options) {
   );
 
   server.get(
-    "/account/accounts",
+    "/account/member",
     {
       preHandler: verifySession(),
       schema: {
-        description: "Returns accounts belonging to the accounts' account",
-        tags: ["account"],
+        description: "Returns accounts the member can access",
+        tags: ["member"],
         response: {
           200: {
             description: "Success Response",
@@ -94,67 +94,14 @@ async function accountRoutes(server, options) {
       },
     },
     async (request, reply) => {
-      if (request.query.t) {
-        let userId = request.session.getUserId();
+      let userId = request.session.getUserId();
 
-        const accounts = await server.accountService.getAccountAccounts(userId, request.query.t);
-        
+      console.log("MEMBER ACCOUNTS");
 
-        return {
-          accounts: accounts,
-        };
-      } else {
-        reply.code(400)
-      }
-    }
-  );
+      const accounts = await server.accountService.getMemberAccounts(userId);
 
-  server.get(
-    "/account/apps",
-    {
-      schema: {
-        description: "Return list of apps the account has access to",
-        tags: ["account"],
-        response: {
-          200: {
-            description: "Success Response",
-            type: "object",
-            properties: {
-              apps: { type: "object" },
-            },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
       return {
-        apps: {},
-      };
-    }
-  );
-  server.get(
-    "/account/app/perms/:appId",
-    {
-      schema: {
-        description: "Return permissioms for a given app.",
-        tags: ["account"],
-        response: {
-          200: {
-            description: "Success Response",
-            type: "object",
-            properties: {
-              appId: { type: "string" },
-              perms: { type: "object" },
-            },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
-      const appId = request.params.appId;
-      console.log(request.params);
-      return {
-        appId: appId,
+        accounts: accounts,
       };
     }
   );
