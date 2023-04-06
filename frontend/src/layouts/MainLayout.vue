@@ -6,7 +6,7 @@
           <!--<q-avatar>
             <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg">
           </q-avatar>-->
-          <span>Izzup</span>
+          <span><router-link :to="{ name: 'home'}" class="navbar-link">Izzup</router-link></span>
         </q-toolbar-title>
         <div>
           <!-- DISPLAY EMAIL IF LOGGED IN -->
@@ -65,3 +65,7 @@ import WelcomeDialog from '../services/member/components/WelcomeDialog.vue';
 
 const auth = useAuthStore();
 </script>
+
+<style lang="scss">
+
+</style>

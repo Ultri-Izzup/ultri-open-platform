@@ -4,13 +4,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue'), name: 'root' }],
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: () => import('pages/IndexPage.vue'),
+      },
+    ],
   },
 
   {
     path: '/member',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/member/pages/DashboardPage.vue'), name: 'member-dashboard' }],
+    children: [
+      {
+        path: '',
+        component: () => import('src/services/member/pages/DashboardPage.vue'),
+        name: 'member-dashboard',
+      },
+    ],
     meta: {
       requiresAuth: true,
     },
@@ -19,7 +31,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/member/settings',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/member/pages/SettingsPage.vue'), name: 'member-settings' }],
+    children: [
+      {
+        path: '',
+        component: () => import('src/services/member/pages/SettingsPage.vue'),
+        name: 'member-settings',
+      },
+    ],
     meta: {
       requiresAuth: true,
     },
@@ -28,7 +46,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/member/articles',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/article/pages/ArticlesPage.vue'), name: 'member-articles' }],
+    children: [
+      {
+        path: '',
+        component: () => import('src/services/article/pages/ArticlesPage.vue'),
+        name: 'member-articles',
+      },
+    ],
     meta: {
       requiresAuth: true,
     },
@@ -37,16 +61,27 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/article/new',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/article/pages/NewArticlePage.vue'), name: 'new-article' }],
-    meta: {
-
-    },
+    children: [
+      {
+        path: '',
+        component: () =>
+          import('src/services/article/pages/NewArticlePage.vue'),
+        name: 'new-article',
+      },
+    ],
+    meta: {},
   },
 
   {
     path: '/member/posts',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/post/pages/PostsPage.vue'), name: 'member-posts' }],
+    children: [
+      {
+        path: '',
+        component: () => import('src/services/post/pages/PostsPage.vue'),
+        name: 'member-posts',
+      },
+    ],
     meta: {
       requiresAuth: true,
     },
@@ -55,7 +90,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/groups',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('src/services/groups/pages/GroupsPage.vue'), name: 'groups' }],
+    children: [
+      {
+        path: '',
+        component: () => import('src/services/groups/pages/GroupsPage.vue'),
+        name: 'groups',
+      },
+    ],
     meta: {
       requiresAuth: true,
     },

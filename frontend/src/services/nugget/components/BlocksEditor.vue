@@ -98,6 +98,7 @@
     <div class="row col-12 q-pa-sm">
 
 
+      {{ editorBlocks }}
       <NewBlockButton @addBlock="(event) => addBlock(event)"></NewBlockButton>
 
       <span v-if="editorBlocks.length < 1" class="text-h6"

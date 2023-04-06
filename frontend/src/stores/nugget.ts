@@ -5,29 +5,49 @@ import { useAuthStore } from './auth';
 
 const auth = useAuthStore();
 
-export const useNuggetStore = defineStore('account', {
+export const useNuggetStore = defineStore('nugget', {
   state: () => ({
+    // Map of nuggets by Uid
     nuggets: useStorage('nuggets', new Map()),
+    // Local only drafts
+    localDrafts: useStorage('localDrafts', new Map()),
   }),
   getters: {
     get(state) {
-      if(state.selectedNugget) {
-        return state.selectedNugget
-      }
-      return 'personal';
+      return state
     }
   },
   actions: {
     reset() {
-      this.selectedNugget = null,
-      this.accountPerms = null,
-      this.accounts = {}
+      this.nuggets = new Map();
+      this.localDrafts = new Map();
     },
-    async fetchNuggets(nuggetType) {
+    async fetchNuggetsByType(nuggetType, accountUid=null) {
 
+    },
+    async fetchNugget(nuggetUid) {
 
+    },
+    async createNugget(nuggetData, accountUid=null) {
 
-      this.accounts = {};
+    },
+    async updateNugget(nuggetUid, nuggetData) {
+
+    },
+    async mergeNuggetBlock(nuggetUid, blocksData) {
+
+    },
+    async deleteNugget(nuggetUid) {
+
+    },
+    async deleteNuggetBlocks(nuggetUid, blockUids) {
+
+    },
+    async publishNugget(nuggetUid, pubAt=null, unPubAt=null) {
+
+    },
+    async unPublishNugget(nuggetUid) {
+
     }
   }
 
