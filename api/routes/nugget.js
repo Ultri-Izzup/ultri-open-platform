@@ -6,7 +6,7 @@ import { verifySession } from "supertokens-node/recipe/session/framework/fastify
 async function nuggetRoutes(server, options) {
   server.register(nuggetServicePlugin);
 
-  // CREATE a Nugget 
+  // CREATE a Nugget
   server.post(
     "/nugget",
     {
@@ -38,21 +38,21 @@ async function nuggetRoutes(server, options) {
             blocks: {
               type: "array",
               description: "The sequenced block data for the nugget",
-                items: {
+              items: {
                 type: "object",
-                required: ["blockUid", "blockType"],
+                required: ["id", "type"],
                 properties: {
-                  "blockUid": {
-                    type: "string"
+                  id: {
+                    type: "string",
                   },
-                  "blockType": {
-                    type: "string"
+                  type: {
+                    type: "string",
                   },
-                  "jsonData": {
-                    type: "object"
-                  }
-                }
-              }
+                  jsonData: {
+                    type: "object",
+                  },
+                },
+              },
             },
           },
         },
@@ -66,7 +66,7 @@ async function nuggetRoutes(server, options) {
               internalName: { type: "string" },
               nugget_type: { type: "string" },
               createdAt: { type: "string" },
-              accountUid: { type: "string" }
+              accountUid: { type: "string" },
             },
           },
         },
@@ -90,18 +90,18 @@ async function nuggetRoutes(server, options) {
       preHandler: verifySession(),
       schema: {
         description: "Returns nuggets belonging to the members' account",
-        tags: ["nugget","member"],
+        tags: ["nugget", "member"],
         response: {
           200: {
             description: "Success Response",
             type: "object",
             properties: {
-              nuggets: { 
+              nuggets: {
                 type: "array",
                 items: {
                   type: "object",
                   properties: {
-                    uid: {
+                    nuggetUid: {
                       type: "string",
                       description: "The nugget unique ID.",
                     },
@@ -132,9 +132,9 @@ async function nuggetRoutes(server, options) {
                     unPublishAt: {
                       type: "string",
                       description: "The time and date to un-publish",
-                    }, 
-                  }
-                }
+                    },
+                  },
+                },
               },
             },
           },
@@ -151,46 +151,7 @@ async function nuggetRoutes(server, options) {
         );
 
         return {
-          nuggets: { 
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                uid: {
-                  type: "string",
-                  description: "The nugget unique ID.",
-                },
-                publicTitle: {
-                  type: "string",
-                  description: "The title to use for public display",
-                },
-                internalName: {
-                  type: "string",
-                  description: "The name to use for internal management",
-                },
-                nuggetType: {
-                  type: "string",
-                  description: "The type of nugget to create",
-                },
-                accountUid: {
-                  type: "string",
-                  description: "The unique account ID for the nugget owner",
-                },
-                createdAt: {
-                  type: "string",
-                  description: "The creation date and time",
-                },
-                publishedAt: {
-                  type: "string",
-                  description: "The time and date to publish",
-                },
-                unPublishAt: {
-                  type: "string",
-                  description: "The time and date to un-publish",
-                }, 
-              }
-            }
-          }
+          nuggets: nuggets,
         };
       } else {
         reply.code(400);
@@ -205,22 +166,22 @@ async function nuggetRoutes(server, options) {
       preHandler: verifySession(),
       schema: {
         description: "Returns nuggets belonging to the account",
-        tags: ["nugget","account"],
+        tags: ["nugget", "account"],
         params: {
-          type: 'object',
+          type: "object",
           properties: {
             accountUid: {
-              type: 'string',
-              description: 'Account unique id'
-            }
-          }
+              type: "string",
+              description: "Account unique id",
+            },
+          },
         },
         response: {
           200: {
             description: "Success Response",
             type: "object",
             properties: {
-              nuggets: { 
+              nuggets: {
                 type: "array",
                 items: {
                   type: "object",
@@ -256,9 +217,9 @@ async function nuggetRoutes(server, options) {
                     unPublishAt: {
                       type: "string",
                       description: "The time and date to un-publish",
-                    }, 
-                  }
-                }
+                    },
+                  },
+                },
               },
             },
           },
@@ -292,13 +253,13 @@ async function nuggetRoutes(server, options) {
         description: "Returns a specific nugget",
         tags: ["member"],
         params: {
-          type: 'object',
+          type: "object",
           properties: {
             nuggetUid: {
-              type: 'string',
-              description: 'Nugget unique id'
-            }
-          }
+              type: "string",
+              description: "Nugget unique id",
+            },
+          },
         },
         response: {
           200: {
@@ -315,10 +276,7 @@ async function nuggetRoutes(server, options) {
       if (request.query.t) {
         let userId = request.session.getUserId();
 
-        const nuggets = await server.nuggetService.getNugget(
-          nuggetUid,
-          userId
-        );
+        const nuggets = await server.nuggetService.getNugget(nuggetUid, userId);
 
         return {
           nuggets: nuggets,
@@ -329,7 +287,7 @@ async function nuggetRoutes(server, options) {
     }
   );
 
-  // UPDATE a Nugget 
+  // UPDATE a Nugget
   server.post(
     "/nugget/:nuggetUid",
     {
@@ -339,13 +297,13 @@ async function nuggetRoutes(server, options) {
         tags: ["nugget"],
         summary: "Add a new nugget of info to the database",
         params: {
-          type: 'object',
+          type: "object",
           properties: {
             nuggetUid: {
-              type: 'string',
-              description: 'Nugget unique id'
-            }
-          }
+              type: "string",
+              description: "Nugget unique id",
+            },
+          },
         },
         body: {
           type: "object",
@@ -378,7 +336,7 @@ async function nuggetRoutes(server, options) {
               internalName: { type: "string" },
               nugget_type: { type: "string" },
               createdAt: { type: "string" },
-              accountUid: { type: "string" }
+              accountUid: { type: "string" },
             },
           },
         },
@@ -395,7 +353,7 @@ async function nuggetRoutes(server, options) {
     }
   );
 
-  // UPDATE Nugget blocks
+  // SET Nugget blocks
   server.post(
     "/nugget/:nuggetUid/blocks",
     {
@@ -405,13 +363,13 @@ async function nuggetRoutes(server, options) {
         tags: ["nugget"],
         summary: "Add a new nugget of info to the database",
         params: {
-          type: 'object',
+          type: "object",
           properties: {
             nuggetUid: {
-              type: 'string',
-              description: 'Nugget unique id'
-            }
-          }
+              type: "string",
+              description: "Nugget unique id",
+            },
+          },
         },
         body: {
           type: "object",
@@ -444,7 +402,7 @@ async function nuggetRoutes(server, options) {
               internalName: { type: "string" },
               nugget_type: { type: "string" },
               createdAt: { type: "string" },
-              accountUid: { type: "string" }
+              accountUid: { type: "string" },
             },
           },
         },
@@ -461,7 +419,7 @@ async function nuggetRoutes(server, options) {
     }
   );
 
-  // DELETE a Nugget 
+  // DELETE a Nugget
   server.delete(
     "/nugget/:nuggetUid",
     {
@@ -471,19 +429,19 @@ async function nuggetRoutes(server, options) {
         tags: ["nugget"],
         summary: "Add a new nugget of info to the database",
         params: {
-          type: 'object',
+          type: "object",
           properties: {
             nuggetUid: {
-              type: 'string',
-              description: 'Nugget unique id'
-            }
-          }
+              type: "string",
+              description: "Nugget unique id",
+            },
+          },
         },
         response: {
           204: {
             description: "Success Response",
-            type: "null"
-            }
+            type: "null",
+          },
         },
       },
     },
@@ -508,17 +466,17 @@ async function nuggetRoutes(server, options) {
         tags: ["nugget"],
         summary: "Add a new nugget of info to the database",
         params: {
-          type: 'object',
+          type: "object",
           properties: {
             nuggetUid: {
-              type: 'string',
-              description: 'Nugget unique id'
+              type: "string",
+              description: "Nugget unique id",
             },
             blockUid: {
-              type: 'string',
-              description: 'Block unique id'
-            }
-          }
+              type: "string",
+              description: "Block unique id",
+            },
+          },
         },
         response: {
           204: {
@@ -547,12 +505,15 @@ async function nuggetRoutes(server, options) {
       schema: {
         description: "Create a new nugget",
         tags: ["nugget"],
-        summary: "Chnage publishing info for a nugget",
-        properties: {
-          nuggetUid: {
-            type: 'string',
-            description: 'Nugget unique id'
-          }
+        summary: "ChangSe publishing info for a nugget",
+        params: {
+          type: "object",
+          properties: {
+            nuggetUid: {
+              type: "string",
+              description: "Nugget unique id",
+            },
+          },
         },
         body: {
           type: "object",
@@ -564,7 +525,7 @@ async function nuggetRoutes(server, options) {
             unPubAt: {
               type: "string",
               description: "The name to use for internal management",
-            }
+            },
           },
         },
         response: {
@@ -589,7 +550,6 @@ async function nuggetRoutes(server, options) {
 
 export default fastifyPlugin(nuggetRoutes);
 
-
 // fetchNuggets(nuggetType, accountUid=null) {
 // fetchNugget(nuggetUid) {
 // createNugget(nuggetData, accountUid=null) {
@@ -599,4 +559,3 @@ export default fastifyPlugin(nuggetRoutes);
 // deleteNuggetBlocks(nuggetUid, blockUids) {
 // publishNugget(nuggetUid, pubAt=null, unPubAt=null) {
 // unPublishNugget(nuggetUid) {
-

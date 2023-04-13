@@ -1,7 +1,7 @@
 ---
 home: true
 heroImage: https://v1.vuepress.vuejs.org/hero.png
-tagline: Cloud agnostic, full-featured platform that goes from PoC to mega-site scale.
+tagline: Cloud agnostic, full-featured platform that scales from PoC to mega-site.
 actionText: Quick Start →
 actionLink: /guide/
 features:

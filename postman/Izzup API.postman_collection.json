@@ -513,7 +513,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://service.local.ultri.com/member/nuggets?t=article",
+							"raw": "https://service.local.ultri.com/nuggets/member?t=article",
 							"protocol": "https",
 							"host": [
 								"service",
@@ -522,8 +522,8 @@
 								"com"
 							],
 							"path": [
-								"member",
-								"nuggets"
+								"nuggets",
+								"member"
 							],
 							"query": [
 								{
@@ -553,7 +553,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"public_title\": \"My latest Title\", \n    \"internal_name\": \"My project\",\n    \"nugget_type\": \"article\"\n}",
+							"raw": "{\n    \"publicTitle\": \"My very latest Title\", \n    \"internalName\": \"My project\",\n    \"nuggetType\": \"article\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -571,6 +571,90 @@
 							],
 							"path": [
 								"nugget"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create member article nugget w/ blocks",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"publicTitle\": \"My latest Title\", \n    \"internalName\": \"My project\",\n    \"nuggetType\": \"article\",\n    \"blocks\": [ { \"id\": \"at4-DN8Xc71G_LUaUldqc\", \"type\": \"richText\", \"data\": \"<font size=\\\"6\\\">My Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>\" }, { \"id\": \"yEzYlzv6zCyzZWBKDbqye\", \"type\": \"image\", \"data\": { \"imageSource\": \"url\", \"url\": \"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s\", \"ratio\": \"1\", \"fit\": \"fill\", \"altText\": \"My alt text\", \"captionText\": \"Overlay text\", \"captionPosition\": \"absolute-full text-subtitle2 flex flex-center\", \"font\": \"Arial\", \"fontSize\": \"xxx-large\", \"fontStyle\": \"normal\", \"fontWeight\": \"text-weight-regular\", \"fontColor\": \"#ffffff\" } }, { \"id\": \"iuZph-jZp2OWzLTUGUrXo\", \"type\": \"basicSeparator\" } ]\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/nugget",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"nugget"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get member accounts",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/account/member",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"account",
+								"member"
 							]
 						}
 					},
@@ -612,6 +696,56 @@
 							],
 							"path": [
 								"account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get account articles",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/nuggets/account/?t=article",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"nuggets",
+								"account",
+								""
+							],
+							"query": [
+								{
+									"key": "t",
+									"value": "article"
+								}
 							]
 						}
 					},

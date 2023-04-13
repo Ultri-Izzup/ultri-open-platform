@@ -3,15 +3,15 @@ import fp from "fastify-plugin";
 const NuggetService = (postgres) => {
   console.log("NuggetService", postgres);
 
-  const getMemberNuggets = async (member_uid, nugget_type) => {
+  const getMemberNuggets = async (memberUid, nuggetType) => {
     const client = await postgres.connect();
 
     try {
       const {
         rows,
-      } = await client.query('SELECT uid,"createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType" FROM izzup_api.member_nuggets($1, $2)', [
-        member_uid,
-        nugget_type,
+      } = await client.query('SELECT "nuggetUid","createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType" FROM izzup_api.member_nuggets($1, $2)', [
+        memberUid,
+        nuggetType,
       ]);
 
       // Note: avoid doing expensive computation here, this will block releasing the client
@@ -28,7 +28,7 @@ const NuggetService = (postgres) => {
     let query;
     let values;
 
-    if(nuggetData.accountId) {
+    if(nuggetData.accountUid) {
 
       query = `SELECT uid, created_at
         FROM izzup_api.create_account_nugget(
@@ -36,10 +36,10 @@ const NuggetService = (postgres) => {
       )`;
 
       values = [
-        nuggetData.public_title,
-        nuggetData.internal_name,
-        nuggetData.nugget_type,
-        nuggetData.account_id,
+        nuggetData.publictTitle,
+        nuggetData.internalName,
+        nuggetData.nuggetType,
+        nuggetData.accountUid,
         authMemberId
       ];
 
@@ -49,14 +49,17 @@ const NuggetService = (postgres) => {
 
       query = `SELECT uid, created_at 
         FROM izzup_api.create_member_nugget(
-          $1, $2, $3, $4
+          $1, $2, $3, $4, $5
       )`;
 
+      console.log(nuggetData.blocks)
+
       values = [
-        nuggetData.public_title,
-        nuggetData.internal_name,
-        nuggetData.nugget_type,
-        authMemberId
+        nuggetData.publicTitle,
+        nuggetData.internalName,
+        nuggetData.nuggetType,
+        authMemberId,
+        JSON.stringify(nuggetData.blocks)
       ];
 
     }
