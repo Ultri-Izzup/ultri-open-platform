@@ -3,7 +3,6 @@
     flat
     dense
     icon-right="mdi-login"
-    class="gt-xs"
     @click="triggerSignInDialog"
     :label="$t('nav.signIn')" no-caps
   ></q-btn>
