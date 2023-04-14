@@ -76,7 +76,7 @@ async function accountRoutes(server, options) {
   );
 
   server.get(
-    "/account/member",
+    "/accounts/member",
     {
       preHandler: verifySession(),
       schema: {

@@ -11,8 +11,7 @@ const AccountService = (postgres) => {
         rows,
       } = await client.query(
         ` SELECT *
-        FROM izzup_api.member_accounts
-               WHERE "memberUid" = $1`,
+        FROM izzup_api.get_member_accounts($1)`,
         [member_uid]
       );
 

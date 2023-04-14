@@ -227,7 +227,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://service.local.ultri.com/member/nuggets?t=article",
+							"raw": "https://service.local.ultri.com/nugget/member?t=article",
 							"protocol": "https",
 							"host": [
 								"service",
@@ -236,14 +236,139 @@
 								"com"
 							],
 							"path": [
-								"member",
-								"nuggets"
+								"nugget",
+								"member"
 							],
 							"query": [
 								{
 									"key": "t",
 									"value": "article"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create member article nugget",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"publicTitle\": \"My more newester Title\", \n    \"internalName\": \"My project\",\n    \"nuggetType\": \"article\",\n    \"blocks\": [ { \"id\": \"at4-DN8Xc71G_LUaUldqc\", \"type\": \"richText\", \"data\": \"<font size=\\\"6\\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>\" }, { \"id\": \"yEzYlzv6zCyzZWBKDbqye\", \"type\": \"image\", \"data\": { \"imageSource\": \"url\", \"url\": \"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s\", \"ratio\": \"1\", \"fit\": \"fill\", \"altText\": \"My alternate text\", \"captionText\": \"Overlay text\", \"captionPosition\": \"absolute-full text-subtitle2 flex flex-center\", \"font\": \"Arial\", \"fontSize\": \"xxx-large\", \"fontStyle\": \"normal\", \"fontWeight\": \"text-weight-regular\", \"fontColor\": \"#ffffff\" } }, { \"id\": \"iuZph-jZp2OWzLTUGUrXo\", \"type\": \"basicSeparator\" } ]\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/nugget",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"nugget"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get member accounts",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/accounts/member",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"accounts",
+								"member"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "rid",
+								"value": "passwordless",
+								"type": "text"
+							},
+							{
+								"key": "st-auth-mode",
+								"value": "cookie",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My shared account\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://service.local.ultri.com/account",
+							"protocol": "https",
+							"host": [
+								"service",
+								"local",
+								"ultri",
+								"com"
+							],
+							"path": [
+								"account"
 							]
 						}
 					},
@@ -536,7 +661,7 @@
 					"response": []
 				},
 				{
-					"name": "Create member article nugget",
+					"name": "Create member article nugget Copy",
 					"request": {
 						"method": "POST",
 						"header": [

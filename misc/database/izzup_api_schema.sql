@@ -42,30 +42,6 @@ CREATE TYPE izzup_api.auth_level AS ENUM (
 ALTER TYPE izzup_api.auth_level OWNER TO izzup_api;
 
 --
--- Name: role; Type: TYPE; Schema: izzup_api; Owner: izzup_api
---
-
-CREATE TYPE izzup_api.role AS ENUM (
-    'owner',
-    'billing',
-    'admin',
-    'author',
-    'editor',
-    'reader',
-    'advisor',
-    'moderator',
-    'messaging',
-    'responder',
-    'reaction',
-    'mailer',
-    'marketing',
-    'support'
-);
-
-
-ALTER TYPE izzup_api.role OWNER TO izzup_api;
-
---
 -- Name: create_account(character varying, uuid); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -83,8 +59,8 @@ BEGIN
 		 VALUES(name_in, false)
 		 RETURNING izzup_api.account.id, izzup_api.account.uid, izzup_api.account.created_at INTO new_account_id, new_account_uid, new_account_created_at;
 		
-	INSERT INTO izzup_api.account_member(account_id, member_uid, roles)
-		 VALUES(new_account_id, owner_uid,  '{"owner"}');
+	INSERT INTO izzup_api.account_member(account_id, member_id , roles)
+		 VALUES(new_account_id, (SELECT m.id FROM izzup_api.member m where m.uid = owner_uid),  '{"owner"}');
 
 	RETURN QUERY SELECT new_account_id, new_account_uid, new_account_created_at;
 	
@@ -198,14 +174,14 @@ BEGIN
 	INSERT INTO izzup_api.nugget(
 				public_title, 
 				internal_name, 
-				nugget_type_id,
+				nugget_type,
 				account_id,
 				blocks
 				)
 			VALUES (
 				$1, 
 				$2, 
-				izzup_api.get_nugget_type_id($3, null),
+				$3,
 				izzup_api.get_member_account($4),
 				$5
 				)
@@ -231,8 +207,10 @@ BEGIN
 	
 	RETURN (SELECT a.id 
 	FROM izzup_api.account_member am 
-	INNER JOIN izzup_api.account a ON a.id = am.account_id AND a.personal = true
-	WHERE am.member_uid = uid_in
+	INNER JOIN izzup_api.account a ON a.id = am.account_id
+	INNER JOIN izzup_api.member m ON m.id = am.member_id
+	WHERE m.uid = uid_in
+	 AND a.personal = true
 	ORDER BY a.created_at LIMIT 1);
 
 	
@@ -241,6 +219,61 @@ $$;
 
 
 ALTER FUNCTION izzup_api.get_member_account(uid_in uuid) OWNER TO izzup_api;
+
+--
+-- Name: get_member_accounts(uuid); Type: FUNCTION; Schema: izzup_api; Owner: postgres
+--
+
+CREATE FUNCTION izzup_api.get_member_accounts(uid_in uuid) RETURNS TABLE("accountUid" uuid, "createdAt" timestamp without time zone, name character varying)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	
+	RETURN QUERY (SELECT a.uid, a.created_at, a.name 
+	FROM izzup_api.account_member am 
+	INNER JOIN izzup_api.account a ON a.id = am.account_id
+	INNER JOIN izzup_api.member m ON m.id = am.member_id
+	WHERE m.uid = uid_in
+	 AND a.personal = false);
+
+	
+END; 
+$$;
+
+
+ALTER FUNCTION izzup_api.get_member_accounts(uid_in uuid) OWNER TO postgres;
+
+--
+-- Name: get_member_nuggets_by_type(uuid, text); Type: FUNCTION; Schema: izzup_api; Owner: postgres
+--
+
+CREATE FUNCTION izzup_api.get_member_nuggets_by_type(member_uid_in uuid, nugget_type_in text) RETURNS TABLE("nuggetUid" uuid, "createdAt" timestamp without time zone, "updatedAt" timestamp without time zone, "pubAt" timestamp without time zone, "unPubAt" timestamp without time zone, "publicTitle" character varying, "internalName" character varying, "nuggetType" character varying, blocks jsonb)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+RETURN QUERY 
+SELECT 
+n.uid AS "nuggetUid",  
+n.created_at AS "createdAt",  
+n.updated_at AS "updatedAt",  
+n.pub_at AS "pubAt", 
+n.un_pub_at AS "unPubAt", 
+n.public_title AS "publicTitle", 
+n.internal_name AS "internalName", 
+n.nugget_type AS "nuggetType",
+n.blocks
+FROM izzup_api.member m 
+INNER JOIN izzup_api.account_member am ON am.member_id = m.id
+INNER JOIN izzup_api.account a ON a.id = am.account_id
+	AND a.personal = true
+INNER JOIN izzup_api.nugget n ON n.account_id = am.account_id
+WHERE m.uid = member_uid_in
+AND n.nugget_type = nugget_type_in;
+END;
+$$;
+
+
+ALTER FUNCTION izzup_api.get_member_nuggets_by_type(member_uid_in uuid, nugget_type_in text) OWNER TO postgres;
 
 --
 -- Name: get_nugget_type_id(character varying, bigint); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
@@ -264,37 +297,34 @@ $$;
 ALTER FUNCTION izzup_api.get_nugget_type_id(type_name_in character varying, account_id_in bigint) OWNER TO izzup_api;
 
 --
--- Name: member_nuggets_by_type(uuid, text); Type: FUNCTION; Schema: izzup_api; Owner: postgres
+-- Name: new_member_from_user(); Type: FUNCTION; Schema: izzup_api; Owner: postgres
 --
 
-CREATE FUNCTION izzup_api.member_nuggets_by_type(member_uid_in uuid, nugget_type_in text) RETURNS TABLE("nuggetUid" uuid, "createdAt" timestamp without time zone, "updatedAt" timestamp without time zone, "pubAt" timestamp without time zone, "unPubAt" timestamp without time zone, "publicTitle" character varying, "internalName" character varying, "nuggetTypeId" bigint, "nuggetType" character varying, blocks jsonb)
+CREATE FUNCTION izzup_api.new_member_from_user() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
+	DECLARE new_member_id BIGINT;
+	DECLARE new_account_id BIGINT;	
 BEGIN
-RETURN QUERY 
-SELECT 
-n.uid AS "nuggetUid",  
-n.created_at AS "createdAt",  
-n.updated_at AS "updatedAt",  
-n.pub_at AS "pubAt", 
-n.un_pub_at AS "unPubAt", 
-n.public_title AS "publicTitle", 
-n.internal_name AS "internalName", 
-n.nugget_type_id AS "nuggetTypeId", 
-nt.name AS "nuggetType", 
-n.blocks
-FROM izzup_api.account_member am 
-INNER JOIN izzup_api.account a ON a.id = am.account_id
-	AND a.personal = true
-INNER JOIN izzup_api.nugget n ON n.account_id = am.account_id
-INNER JOIN izzup_api.nugget_type nt ON nt.id = n.nugget_type_id
-WHERE am.member_uid = member_uid_in
-AND nt.name = nugget_type_in;
+
+	INSERT INTO izzup_api.member(uid, created_at)
+	 VALUES(uuid(NEW.user_id), to_timestamp(NEW.time_joined/1000) )
+	 RETURNING id INTO new_member_id;
+	
+	INSERT INTO izzup_api.account(name)
+		 VALUES('Member Account for ' || new_member_id )
+		 RETURNING id INTO new_account_id;
+		
+	INSERT INTO izzup_api.account_member(account_id, member_id, roles)
+		 VALUES(new_account_id, new_member_id, '{"owner"}');
+		 
+		 RETURN NEW;
+
 END;
 $$;
 
 
-ALTER FUNCTION izzup_api.member_nuggets_by_type(member_uid_in uuid, nugget_type_in text) OWNER TO postgres;
+ALTER FUNCTION izzup_api.new_member_from_user() OWNER TO postgres;
 
 --
 -- Name: register_member(text, text, numeric); Type: FUNCTION; Schema: izzup_api; Owner: izzup_api
@@ -338,6 +368,56 @@ CREATE TABLE izzup_api.account (
 ALTER TABLE izzup_api.account OWNER TO izzup_api;
 
 --
+-- Name: account_group; Type: TABLE; Schema: izzup_api; Owner: postgres
+--
+
+CREATE TABLE izzup_api.account_group (
+    id bigint NOT NULL,
+    uid uuid DEFAULT gen_random_uuid() NOT NULL,
+    account_id bigint NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    name character varying(64),
+    roles text[]
+);
+
+
+ALTER TABLE izzup_api.account_group OWNER TO postgres;
+
+--
+-- Name: account_group_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: postgres
+--
+
+CREATE SEQUENCE izzup_api.account_group_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE izzup_api.account_group_id_seq OWNER TO postgres;
+
+--
+-- Name: account_group_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: postgres
+--
+
+ALTER SEQUENCE izzup_api.account_group_id_seq OWNED BY izzup_api.account_group.id;
+
+
+--
+-- Name: account_group_member; Type: TABLE; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE TABLE izzup_api.account_group_member (
+    account_group_id bigint NOT NULL,
+    member_id bigint NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE izzup_api.account_group_member OWNER TO izzup_api;
+
+--
 -- Name: account_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -364,50 +444,44 @@ ALTER SEQUENCE izzup_api.account_id_seq OWNED BY izzup_api.account.id;
 
 CREATE TABLE izzup_api.account_member (
     account_id bigint NOT NULL,
-    member_uid uuid NOT NULL,
-    linked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    roles izzup_api.role[] DEFAULT '{reader}'::izzup_api.role[] NOT NULL
+    member_id bigint NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp without time zone,
+    roles text[] NOT NULL
 );
 
 
 ALTER TABLE izzup_api.account_member OWNER TO izzup_api;
 
 --
+-- Name: account_nugget_type; Type: TABLE; Schema: izzup_api; Owner: izzup_api
+--
+
+CREATE TABLE izzup_api.account_nugget_type (
+    uid uuid DEFAULT gen_random_uuid() NOT NULL,
+    name character varying(32) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    props jsonb,
+    account_id bigint NOT NULL
+);
+
+
+ALTER TABLE izzup_api.account_nugget_type OWNER TO izzup_api;
+
+--
 -- Name: account_role; Type: TABLE; Schema: izzup_api; Owner: postgres
 --
 
 CREATE TABLE izzup_api.account_role (
-    id bigint NOT NULL,
     uid uuid DEFAULT gen_random_uuid() NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    name character varying(48) NOT NULL,
-    updated_at timestamp without time zone,
-    permissions jsonb DEFAULT '{}'::jsonb NOT NULL
+    name character varying(24) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    permissions jsonb DEFAULT '{}'::jsonb NOT NULL,
+    account_id bigint NOT NULL
 );
 
 
 ALTER TABLE izzup_api.account_role OWNER TO postgres;
-
---
--- Name: account_role_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: postgres
---
-
-CREATE SEQUENCE izzup_api.account_role_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE izzup_api.account_role_id_seq OWNER TO postgres;
-
---
--- Name: account_role_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: postgres
---
-
-ALTER SEQUENCE izzup_api.account_role_id_seq OWNED BY izzup_api.account_role.id;
-
 
 --
 -- Name: block_type; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -444,38 +518,38 @@ ALTER SEQUENCE izzup_api.block_types_id_seq OWNED BY izzup_api.block_type.id;
 
 
 --
--- Name: member; Type: VIEW; Schema: izzup_api; Owner: izzup_api
+-- Name: member; Type: TABLE; Schema: izzup_api; Owner: izzup_api
 --
 
-CREATE VIEW izzup_api.member AS
- SELECT (passwordless_users.user_id)::uuid AS member_uid,
-    passwordless_users.email,
-    passwordless_users.phone_number,
-    to_timestamp(((passwordless_users.time_joined / 1000))::double precision) AS created_at
-   FROM ultri_auth.passwordless_users;
+CREATE TABLE izzup_api.member (
+    id bigint NOT NULL,
+    uid uuid,
+    created_at timestamp without time zone
+);
 
 
 ALTER TABLE izzup_api.member OWNER TO izzup_api;
 
 --
--- Name: member_accounts; Type: VIEW; Schema: izzup_api; Owner: izzup_api
+-- Name: member_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: izzup_api
 --
 
-CREATE VIEW izzup_api.member_accounts AS
- SELECT m.email,
-    am.member_uid AS "memberUid",
-    am.roles,
-    a.name AS "accountName",
-    a.uid AS "accountUid",
-    a.personal,
-    am.linked_at AS "accountLinkedAt",
-    a.created_at AS "accountCreatedAt"
-   FROM ((izzup_api.account_member am
-     JOIN izzup_api.account a ON ((a.id = am.account_id)))
-     JOIN izzup_api.member m ON ((m.member_uid = am.member_uid)));
+CREATE SEQUENCE izzup_api.member_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
 
-ALTER TABLE izzup_api.member_accounts OWNER TO izzup_api;
+ALTER TABLE izzup_api.member_id_seq OWNER TO izzup_api;
+
+--
+-- Name: member_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER SEQUENCE izzup_api.member_id_seq OWNED BY izzup_api.member.id;
+
 
 --
 -- Name: nugget; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -491,8 +565,8 @@ CREATE TABLE izzup_api.nugget (
     public_title character varying(150),
     internal_name character varying(75),
     account_id bigint NOT NULL,
-    nugget_type_id bigint NOT NULL,
-    blocks jsonb DEFAULT '{}'::jsonb
+    blocks jsonb DEFAULT '{}'::jsonb,
+    nugget_type character varying(64) NOT NULL
 );
 
 
@@ -562,8 +636,7 @@ ALTER SEQUENCE izzup_api.nugget_id_seq OWNED BY izzup_api.nugget.id;
 CREATE TABLE izzup_api.nugget_member (
     nugget_id bigint NOT NULL,
     member_id bigint NOT NULL,
-    linked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    roles izzup_api.role[] DEFAULT '{reader}'::izzup_api.role[] NOT NULL
+    linked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 
@@ -583,39 +656,46 @@ CREATE TABLE izzup_api.nugget_reaction (
 ALTER TABLE izzup_api.nugget_reaction OWNER TO izzup_api;
 
 --
--- Name: nugget_type; Type: TABLE; Schema: izzup_api; Owner: izzup_api
+-- Name: nugget_type; Type: TABLE; Schema: izzup_api; Owner: postgres
 --
 
 CREATE TABLE izzup_api.nugget_type (
-    id bigint NOT NULL,
-    name character varying(75) NOT NULL,
-    account_id bigint,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    uid uuid DEFAULT gen_random_uuid() NOT NULL,
+    name character varying(32) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    props jsonb
 );
 
 
-ALTER TABLE izzup_api.nugget_type OWNER TO izzup_api;
+ALTER TABLE izzup_api.nugget_type OWNER TO postgres;
 
 --
--- Name: nugget_type_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: izzup_api
+-- Name: old_account_member; Type: TABLE; Schema: izzup_api; Owner: izzup_api
 --
 
-CREATE SEQUENCE izzup_api.nugget_type_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE TABLE izzup_api.old_account_member (
+    account_id bigint NOT NULL,
+    member_uid uuid NOT NULL,
+    linked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    role_uids uuid[]
+);
 
 
-ALTER TABLE izzup_api.nugget_type_id_seq OWNER TO izzup_api;
+ALTER TABLE izzup_api.old_account_member OWNER TO izzup_api;
 
 --
--- Name: nugget_type_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: izzup_api
+-- Name: old_member; Type: VIEW; Schema: izzup_api; Owner: izzup_api
 --
 
-ALTER SEQUENCE izzup_api.nugget_type_id_seq OWNED BY izzup_api.nugget_type.id;
+CREATE VIEW izzup_api.old_member AS
+ SELECT (passwordless_users.user_id)::uuid AS member_uid,
+    passwordless_users.email,
+    passwordless_users.phone_number,
+    to_timestamp(((passwordless_users.time_joined / 1000))::double precision) AS created_at
+   FROM ultri_auth.passwordless_users;
 
+
+ALTER TABLE izzup_api.old_member OWNER TO izzup_api;
 
 --
 -- Name: response; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -654,6 +734,20 @@ ALTER TABLE izzup_api.response_id_seq OWNER TO izzup_api;
 
 ALTER SEQUENCE izzup_api.response_id_seq OWNED BY izzup_api.response.id;
 
+
+--
+-- Name: role; Type: TABLE; Schema: izzup_api; Owner: postgres
+--
+
+CREATE TABLE izzup_api.role (
+    uid uuid DEFAULT gen_random_uuid() NOT NULL,
+    name character varying(24) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    permissions jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+ALTER TABLE izzup_api.role OWNER TO postgres;
 
 --
 -- Name: service; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -699,10 +793,10 @@ ALTER TABLE ONLY izzup_api.account ALTER COLUMN id SET DEFAULT nextval('izzup_ap
 
 
 --
--- Name: account_role id; Type: DEFAULT; Schema: izzup_api; Owner: postgres
+-- Name: account_group id; Type: DEFAULT; Schema: izzup_api; Owner: postgres
 --
 
-ALTER TABLE ONLY izzup_api.account_role ALTER COLUMN id SET DEFAULT nextval('izzup_api.account_role_id_seq'::regclass);
+ALTER TABLE ONLY izzup_api.account_group ALTER COLUMN id SET DEFAULT nextval('izzup_api.account_group_id_seq'::regclass);
 
 
 --
@@ -710,6 +804,13 @@ ALTER TABLE ONLY izzup_api.account_role ALTER COLUMN id SET DEFAULT nextval('izz
 --
 
 ALTER TABLE ONLY izzup_api.block_type ALTER COLUMN id SET DEFAULT nextval('izzup_api.block_types_id_seq'::regclass);
+
+
+--
+-- Name: member id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.member ALTER COLUMN id SET DEFAULT nextval('izzup_api.member_id_seq'::regclass);
 
 
 --
@@ -724,13 +825,6 @@ ALTER TABLE ONLY izzup_api.nugget ALTER COLUMN id SET DEFAULT nextval('izzup_api
 --
 
 ALTER TABLE ONLY izzup_api.nugget_comment ALTER COLUMN id SET DEFAULT nextval('izzup_api.nugget_comment_id_seq'::regclass);
-
-
---
--- Name: nugget_type id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
---
-
-ALTER TABLE ONLY izzup_api.nugget_type ALTER COLUMN id SET DEFAULT nextval('izzup_api.nugget_type_id_seq'::regclass);
 
 
 --
@@ -783,6 +877,34 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 34	bf676460-7d92-41e4-a954-a2f18f291d37	2023-03-30 06:11:15.637939	My shared account	f
 35	96be72ff-5b99-4525-a5c3-2fc9ec6f365a	2023-03-31 05:14:52.328446	Izzup Member Account for 386319aa-abdf-42d6-a53b-ee2cc7511a07	t
 36	35064555-8fab-4a56-8ec0-79f0f63774bd	2023-04-08 06:19:30.216301	My shared account	f
+39	c407cd4b-3c86-45a2-91e9-151f41e4fa0a	2023-04-14 01:28:14.831104	Member Account for 3	t
+40	62a9f48e-90ee-4268-9b2c-647681f90d07	2023-04-14 01:30:37.994139	Member Account for 4	t
+41	d2c7e06f-5f3c-4b2d-b066-e192cde4e3fc	2023-04-14 01:33:26.246145	Member Account for	t
+42	164ece7e-a8aa-42a7-a672-75bfbbde4a87	2023-04-14 01:35:27.592473	Member Account for 6	t
+43	78a60a6b-836b-4b8e-be70-9424072d14ee	2023-04-14 01:39:14.597227	Member Account for 7	t
+47	3f878978-adbf-4e06-945f-d7bf8d423f7f	2023-04-14 02:38:19.96892	My shared account	f
+48	f72d574c-85b2-47f7-b244-4b484f366a7e	2023-04-14 02:54:32.176074	Member Account for 8	t
+49	27f84f6a-ceae-4f9d-9a7f-2b0c8c58e3e4	2023-04-14 03:40:56.893315	Member Account for 9	t
+50	fc8ff7f7-9da1-47c4-8dd3-f14a77aa76fd	2023-04-14 06:03:08.037466	Member Account for 10	t
+51	78707037-a5cb-400f-bf5d-6125e644c71b	2023-04-14 06:58:55.731716	My shared account	f
+52	8e71d3f8-3ef7-4a0a-bad0-a5512c548a21	2023-04-14 07:39:12.207195	Member Account for 11	t
+53	b6d5e2b2-1d55-4eac-98fe-a80d14284f68	2023-04-14 07:42:40.584335	My shared account	f
+\.
+
+
+--
+-- Data for Name: account_group; Type: TABLE DATA; Schema: izzup_api; Owner: postgres
+--
+
+COPY izzup_api.account_group (id, uid, account_id, created_at, name, roles) FROM stdin;
+\.
+
+
+--
+-- Data for Name: account_group_member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
+--
+
+COPY izzup_api.account_group_member (account_group_id, member_id, created_at) FROM stdin;
 \.
 
 
@@ -790,35 +912,24 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 -- Data for Name: account_member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
 --
 
-COPY izzup_api.account_member (account_id, member_uid, linked_at, roles) FROM stdin;
-7	64582d96-9dda-4117-91ba-666313852bfe	2023-03-11 05:12:52.829332	{owner}
-5	be0f1caf-6fec-4b23-b1bd-56b9fa80408e	2023-03-11 05:14:53.975062	{owner}
-8	0f165d16-fa39-4503-8b91-6c0ce1e23e7c	2023-03-15 06:26:05.744271	{owner}
-9	44febcf5-2489-4ef3-9751-b45d22bf0428	2023-03-16 04:03:25.371706	{owner}
-10	1d6a86c4-94fe-4133-a7ac-4a8eebca66d3	2023-03-16 18:19:17.372258	{owner}
-11	229c4c57-d594-46e4-aa63-27379147d0a4	2023-03-16 18:29:49.36112	{owner}
-12	236d9ca2-82ef-4ad9-b815-8f0f3e21fdb3	2023-03-16 18:31:16.218219	{owner}
-13	c041e99e-574b-49e5-937d-b4a5fbd4c78e	2023-03-16 18:48:36.678407	{owner}
-14	c11640b9-2b79-4c36-960e-74f31e634ceb	2023-03-16 18:50:19.011995	{owner}
-15	720e6556-d883-4838-b07a-79d73398d1b5	2023-03-16 18:52:32.27825	{owner}
-16	9f77b3df-ed08-4a02-a6c9-e5dbd9573c33	2023-03-16 20:27:57.148596	{owner}
-17	a3952355-71f4-434d-9f03-0c61950447b4	2023-03-16 20:31:55.611748	{owner}
-18	12b3a861-c627-4493-9243-03e6fd274995	2023-03-16 20:39:16.001646	{owner}
-19	df50854c-201f-4829-a67a-953e39aa772f	2023-03-18 06:30:13.989994	{owner}
-20	3c1f25cd-065b-483e-ae33-339488f263bb	2023-03-18 19:35:08.272918	{owner}
-21	b2264e89-9e8d-40ad-a8ab-75c2146c899d	2023-03-19 06:54:30.891231	{owner}
-22	d4dcff47-90a8-48ca-a04b-0cbf4b05091b	2023-03-22 04:59:25.634367	{owner}
-23	8fe443bc-745c-460a-a9c4-0ae7b261d6c4	2023-03-24 00:02:14.944919	{owner}
-24	c8885655-74e3-4594-ad69-2419a2129458	2023-03-24 03:12:18.122234	{owner}
-28	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:25.28476	{owner}
-29	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:35.253513	{owner}
-30	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:41.031688	{owner}
-31	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:46.285516	{owner}
-32	c8885655-74e3-4594-ad69-2419a2129458	2023-03-28 04:42:34.097693	{owner}
-33	c8885655-74e3-4594-ad69-2419a2129458	2023-03-30 04:35:37.196831	{owner}
-34	c8885655-74e3-4594-ad69-2419a2129458	2023-03-30 06:11:15.637939	{owner}
-35	386319aa-abdf-42d6-a53b-ee2cc7511a07	2023-03-31 05:14:52.328446	{owner}
-36	c8885655-74e3-4594-ad69-2419a2129458	2023-04-08 06:19:30.216301	{owner}
+COPY izzup_api.account_member (account_id, member_id, created_at, updated_at, roles) FROM stdin;
+39	3	2023-04-14 01:28:14.831104	\N	{owner}
+43	7	2023-04-14 01:39:14.597227	\N	{owner}
+47	7	2023-04-14 02:38:19.96892	\N	{owner}
+48	8	2023-04-14 02:54:32.176074	\N	{owner}
+49	9	2023-04-14 03:40:56.893315	\N	{owner}
+50	10	2023-04-14 06:03:08.037466	\N	{owner}
+51	10	2023-04-14 06:58:55.731716	\N	{owner}
+52	11	2023-04-14 07:39:12.207195	\N	{owner}
+53	11	2023-04-14 07:42:40.584335	\N	{owner}
+\.
+
+
+--
+-- Data for Name: account_nugget_type; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
+--
+
+COPY izzup_api.account_nugget_type (uid, name, created_at, props, account_id) FROM stdin;
 \.
 
 
@@ -826,7 +937,7 @@ COPY izzup_api.account_member (account_id, member_uid, linked_at, roles) FROM st
 -- Data for Name: account_role; Type: TABLE DATA; Schema: izzup_api; Owner: postgres
 --
 
-COPY izzup_api.account_role (id, uid, created_at, name, updated_at, permissions) FROM stdin;
+COPY izzup_api.account_role (uid, name, created_at, permissions, account_id) FROM stdin;
 \.
 
 
@@ -839,25 +950,48 @@ COPY izzup_api.block_type (id, name, created_at) FROM stdin;
 
 
 --
+-- Data for Name: member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
+--
+
+COPY izzup_api.member (id, uid, created_at) FROM stdin;
+3	8e40087d-7a40-4b2c-9406-a0e7ffe9c438	2023-04-14 01:28:14
+4	b3c2f363-3ec9-4a7b-91cd-a3c3765fc269	2023-04-14 01:30:37
+5	1d194d19-edc7-4959-95f6-d64be45221d2	\N
+6	94b483b7-9ee9-47d2-bad9-35ebe2ff934c	2023-04-14 01:35:27
+7	d8365632-2ab6-4a22-8767-974a62a5fd62	2023-04-14 01:39:14
+8	45b10c9e-2ace-41c5-803c-a13609ab605b	2023-04-14 02:54:32
+9	3c4f3865-1c73-48ee-ac86-7eac86a4efa6	2023-04-14 03:40:56
+10	21d43421-5217-47ed-b58a-809ee035c34b	2023-04-14 06:03:08
+11	bc4a1662-f92a-455d-a231-d9b651247b4d	2023-04-14 07:39:12
+\.
+
+
+--
 -- Data for Name: nugget; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
 --
 
-COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, public_title, internal_name, account_id, nugget_type_id, blocks) FROM stdin;
-41	26f0f0ff-62a3-4abc-ab4c-f354a72ee104	2023-03-24 21:51:44.353823	\N	\N	\N	My newest Title	My project	24	1	{}
-42	3cb20534-e881-4eaf-89b1-418b7cdcb47c	2023-03-24 21:52:21.345467	\N	\N	\N	My next Title	My next project	24	1	{}
-44	1e472044-ad49-4120-a655-0101a40219f2	2023-03-26 20:27:35.046921	\N	\N	\N	My next Title	My next project	24	1	{}
-45	de073b73-ff62-4410-8570-838795b44ee9	2023-03-28 04:42:26.033553	\N	\N	\N	My next Title	My next project	24	1	{}
-46	d6ed7e0a-6f29-4256-a074-0da8b6321695	2023-03-30 04:35:29.098299	\N	\N	\N	My next Title	My next project	24	1	{}
-47	45219790-7fff-4456-a5f9-d0d2147da845	2023-03-30 06:09:14.194829	\N	\N	\N	My latest Title	My project	24	1	{}
-48	72d33848-a935-4a7f-ade7-43fb72d7b1ec	2023-04-08 05:38:37.306684	\N	\N	\N	\N	\N	24	1	{}
-49	5d57769c-3636-4a93-bf0f-4e33f380088c	2023-04-08 05:38:37.56209	\N	\N	\N	\N	\N	24	1	{}
-50	5f721dc5-d1b6-479a-a0b6-17ed9e7eb89a	2023-04-08 05:40:39.02097	\N	\N	\N	\N	\N	24	1	{}
-51	3aa5fa87-34fd-49ee-8636-e0ccf8677bad	2023-04-08 06:12:17.285529	\N	\N	\N	\N	\N	24	1	{}
-52	f2faf463-88a4-4c12-836e-d9abae28ead9	2023-04-08 06:16:06.991828	\N	\N	\N	My very latest Title	My project	24	1	{}
-53	bdedb8a1-7635-4841-8376-075f7f10949a	2023-04-10 05:14:56.922347	\N	\N	\N	My newester Title	My project	24	1	{}
-54	111d636d-71f8-4e77-b605-55b182216c57	2023-04-10 05:15:09.065467	\N	\N	\N	My latest Title	My project	24	1	{}
-55	d56d6725-b9de-4552-a9a5-1f9c3c5525e3	2023-04-11 02:51:21.726303	\N	\N	\N	Mysuper latest Title	My project	24	1	{}
-56	42b91f7e-9416-46a3-a810-b1bef4386ea9	2023-04-11 03:48:17.922929	\N	\N	\N	Mysuper latest Title	My project	24	1	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alt text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]
+COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, public_title, internal_name, account_id, blocks, nugget_type) FROM stdin;
+41	26f0f0ff-62a3-4abc-ab4c-f354a72ee104	2023-03-24 21:51:44.353823	\N	\N	\N	My newest Title	My project	24	{}	article
+42	3cb20534-e881-4eaf-89b1-418b7cdcb47c	2023-03-24 21:52:21.345467	\N	\N	\N	My next Title	My next project	24	{}	article
+44	1e472044-ad49-4120-a655-0101a40219f2	2023-03-26 20:27:35.046921	\N	\N	\N	My next Title	My next project	24	{}	article
+45	de073b73-ff62-4410-8570-838795b44ee9	2023-03-28 04:42:26.033553	\N	\N	\N	My next Title	My next project	24	{}	article
+46	d6ed7e0a-6f29-4256-a074-0da8b6321695	2023-03-30 04:35:29.098299	\N	\N	\N	My next Title	My next project	24	{}	article
+47	45219790-7fff-4456-a5f9-d0d2147da845	2023-03-30 06:09:14.194829	\N	\N	\N	My latest Title	My project	24	{}	article
+48	72d33848-a935-4a7f-ade7-43fb72d7b1ec	2023-04-08 05:38:37.306684	\N	\N	\N	\N	\N	24	{}	article
+49	5d57769c-3636-4a93-bf0f-4e33f380088c	2023-04-08 05:38:37.56209	\N	\N	\N	\N	\N	24	{}	article
+50	5f721dc5-d1b6-479a-a0b6-17ed9e7eb89a	2023-04-08 05:40:39.02097	\N	\N	\N	\N	\N	24	{}	article
+51	3aa5fa87-34fd-49ee-8636-e0ccf8677bad	2023-04-08 06:12:17.285529	\N	\N	\N	\N	\N	24	{}	article
+52	f2faf463-88a4-4c12-836e-d9abae28ead9	2023-04-08 06:16:06.991828	\N	\N	\N	My very latest Title	My project	24	{}	article
+53	bdedb8a1-7635-4841-8376-075f7f10949a	2023-04-10 05:14:56.922347	\N	\N	\N	My newester Title	My project	24	{}	article
+54	111d636d-71f8-4e77-b605-55b182216c57	2023-04-10 05:15:09.065467	\N	\N	\N	My latest Title	My project	24	{}	article
+55	d56d6725-b9de-4552-a9a5-1f9c3c5525e3	2023-04-11 02:51:21.726303	\N	\N	\N	Mysuper latest Title	My project	24	{}	article
+56	42b91f7e-9416-46a3-a810-b1bef4386ea9	2023-04-11 03:48:17.922929	\N	\N	\N	Mysuper latest Title	My project	24	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alt text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+57	38406982-577e-4e22-a675-f723a71ae680	2023-04-14 04:11:48.881654	\N	\N	\N	Mysuper latest Title	My project	49	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alt text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+58	18f2257e-a7b9-4391-b755-b22c14dc2a0d	2023-04-14 04:14:34.064769	\N	\N	\N	Mysuper latest Title	My project	49	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+61	48d14120-2e55-4c69-b93c-1c724a0eedfd	2023-04-14 06:04:07.352102	\N	\N	\N	My more newester Title	My project	50	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+62	60bbc1f0-2da1-455f-9a6e-57f7746c425d	2023-04-14 06:57:26.771734	\N	\N	\N	My super latest Title	My project	50	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+63	7ee49dc9-c27f-45b2-8b72-6a9502f390e9	2023-04-14 07:39:22.32392	\N	\N	\N	My more newester Title	My project	52	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+64	f5bbceb7-bc0d-4094-bccd-d7078aad63be	2023-04-14 07:39:24.39632	\N	\N	\N	My more newester Title	My project	52	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
 \.
 
 
@@ -873,7 +1007,7 @@ COPY izzup_api.nugget_comment (id, uid, "created_at ", account_id, nugget_id) FR
 -- Data for Name: nugget_member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
 --
 
-COPY izzup_api.nugget_member (nugget_id, member_id, linked_at, roles) FROM stdin;
+COPY izzup_api.nugget_member (nugget_id, member_id, linked_at) FROM stdin;
 \.
 
 
@@ -886,32 +1020,93 @@ COPY izzup_api.nugget_reaction (nugget_id, account_id, member_id) FROM stdin;
 
 
 --
--- Data for Name: nugget_type; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
+-- Data for Name: nugget_type; Type: TABLE DATA; Schema: izzup_api; Owner: postgres
 --
 
-COPY izzup_api.nugget_type (id, name, account_id, created_at) FROM stdin;
-1	article	\N	2023-03-15 07:27:56.906351
-2	post	\N	2023-03-15 07:27:56.906351
-3	comment	\N	2023-03-15 07:27:56.906351
-4	response	\N	2023-03-15 07:27:56.906351
-5	item	\N	2023-03-15 07:27:56.906351
-6	collection	\N	2023-03-15 07:27:56.906351
-7	shop	\N	2023-03-15 07:27:56.906351
-8	webpage	\N	2023-03-15 07:27:56.906351
-9	website	\N	2023-03-15 07:27:56.906351
-10	recipe	\N	2023-03-15 07:27:56.906351
-11	article	24	2023-03-24 08:06:16.288524
-12	instructions	\N	2023-04-12 18:10:05.748755
-13	quiz	\N	2023-04-12 18:10:05.748755
-14	survey	\N	2023-04-12 18:10:05.748755
-15	contact	\N	2023-04-12 18:10:05.748755
-16	email	\N	2023-04-12 18:10:05.748755
-17	task	\N	2023-04-12 18:17:37.083047
-18	epic	\N	2023-04-12 18:17:37.083047
-19	proposal	\N	2023-04-12 18:17:37.083047
-20	temporal	\N	2023-04-12 18:17:37.083047
-21	location	\N	2023-04-12 18:17:37.083047
-22	ledger	\N	2023-04-12 18:17:37.083047
+COPY izzup_api.nugget_type (uid, name, created_at, props) FROM stdin;
+675d2533-bf73-407e-8f74-bb1090c325b1	article	2023-04-13 07:01:56.756336	\N
+c4d1037d-56c5-4bae-9364-6a26ba4e5151	invoice	2023-04-13 07:01:56.756336	\N
+a87f31e9-63c9-48ef-8dc5-431564bd1bbe	comment	2023-04-13 07:01:56.756336	\N
+6a12c285-cf2a-4d2b-aa02-2aedee32ea99	response	2023-04-13 07:01:56.756336	\N
+f904016a-2e57-4c57-a9e6-723be64280a5	message	2023-04-13 07:01:56.756336	\N
+af50320e-3f44-498d-a229-60ff8470cadd	proposal	2023-04-13 07:01:56.756336	\N
+37189c56-b32b-48e8-b62c-7e2f5c1e4161	task	2023-04-13 07:01:56.756336	\N
+91b847d3-b84c-4243-b730-7a8cd63d5f9f	sprint	2023-04-13 07:01:56.756336	\N
+24f422a5-996a-45b6-b783-26dbb5b8375a	collection	2023-04-13 07:01:56.756336	\N
+4ef3fb49-f917-4e7e-a53a-4c4492c9b54a	temporal	2023-04-13 07:01:56.756336	\N
+43db28b4-687a-4897-a1bd-7c3dc466c5fe	item	2023-04-13 07:06:14.537866	\N
+0300c026-c8f6-480a-ba2d-7629508f089a	epic	2023-04-13 07:06:14.537866	\N
+7712bf93-f42b-4bce-9a3d-32010cf2f595	project	2023-04-13 07:06:14.537866	\N
+57179bf9-0f3b-405c-a6e0-5faf8b50b729	location	2023-04-13 07:06:14.537866	\N
+cf09d931-db81-4059-95b0-d548ff0dbd64	decision	2023-04-13 07:12:38.674899	\N
+ebd2c8ec-5bcb-434d-a28b-dd9c61de6605	vote	2023-04-13 07:12:38.674899	\N
+56949eba-821b-4d12-8595-a30acf5242d2	howto	2023-04-13 07:12:38.674899	\N
+7257319f-072f-48ee-9ca4-7bd2fc8e1e97	quiz	2023-04-13 07:12:38.674899	\N
+b31bbe92-fc28-4666-afac-b824ea3241d1	survey	2023-04-13 07:12:38.674899	\N
+242da869-02a3-4edb-a1f1-c21a89988e34	calendar	2023-04-13 07:12:38.674899	\N
+411c9901-27f7-4225-9b57-fed3324db970	storefront	2023-04-13 07:16:03.619169	\N
+ad1d11e9-8b76-4862-ac17-4d94c81370a3	catalog	2023-04-13 07:16:03.619169	\N
+2a494f9f-5d82-4984-9498-0e483be74911	product	2023-04-13 07:16:03.619169	\N
+898d4354-6fc5-4091-b6c6-4238daa20d73	post	2023-04-13 07:16:03.619169	\N
+db57f2f3-5914-414b-bcb8-15213f8e7649	forsale	2023-04-13 07:16:03.619169	\N
+ca8ef377-103a-41ae-a42a-14d6451e9b7a	iso	2023-04-13 07:16:03.619169	\N
+73ba8598-a13b-4467-ba02-a944c1ce7f6e	job	2023-04-13 07:16:03.619169	\N
+d8fde94a-8c9e-47b7-b15a-c4c1300d2a64	organization	2023-04-13 07:16:03.619169	\N
+c7c1a17d-19c3-4d4f-9b98-efef57ccb37c	map	2023-04-13 07:18:59.072807	\N
+9dcfa4a5-6333-45dc-9d7c-127666f94a60	resume	2023-04-13 07:18:59.072807	\N
+f5696b01-14fc-4be6-9053-a97ae04b0c2c	portfolio	2023-04-13 07:18:59.072807	\N
+0cc3a0a5-3af7-4218-8f37-ff8090df2977	website	2023-04-13 07:18:59.072807	\N
+9d22a61f-953a-40fd-a5d4-1e752bccb867	webpage	2023-04-13 07:18:59.072807	\N
+6962db2f-5421-4ef1-8b51-25aff68463f7	rfc	2023-04-13 07:18:59.072807	\N
+c5d66fdc-b294-4ea3-98fd-22ed2888c536	meeting	2023-04-13 07:19:25.307955	\N
+76f8b5a0-152c-4482-8889-d86e1c6c75ac	slidedeck	2023-04-13 07:21:35.185477	\N
+0c488208-78e2-468a-b27e-fe2c1b4cabfc	album	2023-04-13 07:21:35.185477	\N
+ad2412e1-20ab-4826-9389-40222d35a5ce	storage	2023-04-13 07:21:35.185477	\N
+99b61c5a-ebae-49e8-8016-e9e4a28888ef	orgChart	2023-04-13 07:23:47.401752	\N
+4165da27-cd0a-4b9b-8406-732414bd9120	issue	2023-04-13 07:23:47.401752	\N
+a256cae5-3dea-4dd8-b8f4-4cf9b802cb03	order	2023-04-13 07:23:47.401752	\N
+cc115a49-24a1-4b1a-b972-bc649559ab8b	shipment	2023-04-13 07:23:47.401752	\N
+28892dbc-aa47-4be4-b106-3a04dc1f5314	payment	2023-04-13 07:25:37.10834	\N
+06dfb799-b326-4d7d-8a80-3cc432607c12	ledger	2023-04-13 07:25:37.10834	\N
+058e24b5-8d5c-425a-ba84-ceeae2ae9aca	transaction	2023-04-13 07:25:37.10834	\N
+b699329d-8442-4473-aa2a-8a1c8f31f87b	campaign	2023-04-13 07:26:28.593006	\N
+3fe87943-e8cf-4552-aa55-b25beec1d8e7	checklist	2023-04-14 04:35:09.708361	\N
+\.
+
+
+--
+-- Data for Name: old_account_member; Type: TABLE DATA; Schema: izzup_api; Owner: izzup_api
+--
+
+COPY izzup_api.old_account_member (account_id, member_uid, linked_at, role_uids) FROM stdin;
+7	64582d96-9dda-4117-91ba-666313852bfe	2023-03-11 05:12:52.829332	\N
+5	be0f1caf-6fec-4b23-b1bd-56b9fa80408e	2023-03-11 05:14:53.975062	\N
+8	0f165d16-fa39-4503-8b91-6c0ce1e23e7c	2023-03-15 06:26:05.744271	\N
+9	44febcf5-2489-4ef3-9751-b45d22bf0428	2023-03-16 04:03:25.371706	\N
+10	1d6a86c4-94fe-4133-a7ac-4a8eebca66d3	2023-03-16 18:19:17.372258	\N
+11	229c4c57-d594-46e4-aa63-27379147d0a4	2023-03-16 18:29:49.36112	\N
+12	236d9ca2-82ef-4ad9-b815-8f0f3e21fdb3	2023-03-16 18:31:16.218219	\N
+13	c041e99e-574b-49e5-937d-b4a5fbd4c78e	2023-03-16 18:48:36.678407	\N
+14	c11640b9-2b79-4c36-960e-74f31e634ceb	2023-03-16 18:50:19.011995	\N
+15	720e6556-d883-4838-b07a-79d73398d1b5	2023-03-16 18:52:32.27825	\N
+16	9f77b3df-ed08-4a02-a6c9-e5dbd9573c33	2023-03-16 20:27:57.148596	\N
+17	a3952355-71f4-434d-9f03-0c61950447b4	2023-03-16 20:31:55.611748	\N
+18	12b3a861-c627-4493-9243-03e6fd274995	2023-03-16 20:39:16.001646	\N
+19	df50854c-201f-4829-a67a-953e39aa772f	2023-03-18 06:30:13.989994	\N
+20	3c1f25cd-065b-483e-ae33-339488f263bb	2023-03-18 19:35:08.272918	\N
+21	b2264e89-9e8d-40ad-a8ab-75c2146c899d	2023-03-19 06:54:30.891231	\N
+22	d4dcff47-90a8-48ca-a04b-0cbf4b05091b	2023-03-22 04:59:25.634367	\N
+23	8fe443bc-745c-460a-a9c4-0ae7b261d6c4	2023-03-24 00:02:14.944919	\N
+24	c8885655-74e3-4594-ad69-2419a2129458	2023-03-24 03:12:18.122234	\N
+28	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:25.28476	\N
+29	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 19:39:35.253513	\N
+30	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:41.031688	\N
+31	c8885655-74e3-4594-ad69-2419a2129458	2023-03-26 20:28:46.285516	\N
+32	c8885655-74e3-4594-ad69-2419a2129458	2023-03-28 04:42:34.097693	\N
+33	c8885655-74e3-4594-ad69-2419a2129458	2023-03-30 04:35:37.196831	\N
+34	c8885655-74e3-4594-ad69-2419a2129458	2023-03-30 06:11:15.637939	\N
+35	386319aa-abdf-42d6-a53b-ee2cc7511a07	2023-03-31 05:14:52.328446	\N
+36	c8885655-74e3-4594-ad69-2419a2129458	2023-04-08 06:19:30.216301	\N
 \.
 
 
@@ -920,6 +1115,20 @@ COPY izzup_api.nugget_type (id, name, account_id, created_at) FROM stdin;
 --
 
 COPY izzup_api.response (id, uid, created_at, comment_id, response_id, account_id, nugget_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: role; Type: TABLE DATA; Schema: izzup_api; Owner: postgres
+--
+
+COPY izzup_api.role (uid, name, created_at, permissions) FROM stdin;
+baf4d3c1-8252-4f04-8680-c5e158476901	owner	2023-04-13 06:27:50.772132	{"all": "all"}
+977d1068-a8e7-4fd5-9943-2cb64b8b3c3b	billing	2023-04-13 06:36:01.322926	{"nuggetTypes": {"invoice": ["r"]}}
+df7e929b-fa83-4bb2-b82c-389913476529	preview	2023-04-13 06:36:01.322926	{"nuggetTypes": {"article": ["r"]}}
+7f0b5144-7c9d-465c-8b55-fc549b1f43d8	support	2023-04-13 06:38:31.456076	{"nuggetTypes": {"article": ["r"], "invoice": ["r"], "response": ["r"]}}
+00dae312-18b4-486f-820b-acc09f5d1628	social	2023-04-13 06:36:01.322926	{"nuggetTypes": {"response": ["c", "r", "u", "d", "pub"]}}
+4ae37c11-9346-4b48-8878-32b4c1808840	editor	2023-04-13 06:27:50.772132	{"nuggetTypes": {"article": ["c", "r", "u", "d", "pub"]}}
 \.
 
 
@@ -943,17 +1152,17 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 
 
 --
+-- Name: account_group_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: postgres
+--
+
+SELECT pg_catalog.setval('izzup_api.account_group_id_seq', 1, false);
+
+
+--
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 36, true);
-
-
---
--- Name: account_role_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: postgres
---
-
-SELECT pg_catalog.setval('izzup_api.account_role_id_seq', 1, false);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 53, true);
 
 
 --
@@ -961,6 +1170,13 @@ SELECT pg_catalog.setval('izzup_api.account_role_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('izzup_api.block_types_id_seq', 1, false);
+
+
+--
+-- Name: member_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
+--
+
+SELECT pg_catalog.setval('izzup_api.member_id_seq', 11, true);
 
 
 --
@@ -974,14 +1190,7 @@ SELECT pg_catalog.setval('izzup_api.nugget_comment_id_seq', 1, false);
 -- Name: nugget_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 56, true);
-
-
---
--- Name: nugget_type_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
---
-
-SELECT pg_catalog.setval('izzup_api.nugget_type_id_seq', 22, true);
+SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 64, true);
 
 
 --
@@ -999,11 +1208,35 @@ SELECT pg_catalog.setval('izzup_api.service_id_seq', 21, true);
 
 
 --
--- Name: account_member account_member_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+-- Name: account_group_member account_group_member_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.account_group_member
+    ADD CONSTRAINT account_group_member_pkey PRIMARY KEY (account_group_id, member_id);
+
+
+--
+-- Name: account_group account_group_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.account_group
+    ADD CONSTRAINT account_group_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: old_account_member account_member_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.old_account_member
+    ADD CONSTRAINT account_member_pkey PRIMARY KEY (account_id, member_uid);
+
+
+--
+-- Name: account_member account_member_pkey1; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
 --
 
 ALTER TABLE ONLY izzup_api.account_member
-    ADD CONSTRAINT account_member_pkey PRIMARY KEY (account_id, member_uid);
+    ADD CONSTRAINT account_member_pkey1 PRIMARY KEY (account_id, member_id);
 
 
 --
@@ -1015,19 +1248,19 @@ ALTER TABLE ONLY izzup_api.account
 
 
 --
--- Name: account_role account_role_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
---
-
-ALTER TABLE ONLY izzup_api.account_role
-    ADD CONSTRAINT account_role_pkey PRIMARY KEY (id);
-
-
---
 -- Name: block_type block_types_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
 --
 
 ALTER TABLE ONLY izzup_api.block_type
     ADD CONSTRAINT block_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: member member_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.member
+    ADD CONSTRAINT member_pkey PRIMARY KEY (id);
 
 
 --
@@ -1063,11 +1296,11 @@ ALTER TABLE ONLY izzup_api.nugget_reaction
 
 
 --
--- Name: nugget_type nugget_type_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+-- Name: nugget_type nugget_type_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
 --
 
 ALTER TABLE ONLY izzup_api.nugget_type
-    ADD CONSTRAINT nugget_type_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT nugget_type_pkey PRIMARY KEY (uid);
 
 
 --
@@ -1079,11 +1312,35 @@ ALTER TABLE ONLY izzup_api.response
 
 
 --
+-- Name: role roles_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.role
+    ADD CONSTRAINT roles_pkey PRIMARY KEY (uid);
+
+
+--
 -- Name: service service_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
 --
 
 ALTER TABLE ONLY izzup_api.service
     ADD CONSTRAINT service_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: account_group uq_account_group_name; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.account_group
+    ADD CONSTRAINT uq_account_group_name UNIQUE (account_id, name);
+
+
+--
+-- Name: account_nugget_type uq_account_nugget_type_name; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.account_nugget_type
+    ADD CONSTRAINT uq_account_nugget_type_name UNIQUE (name, account_id);
 
 
 --
@@ -1095,11 +1352,27 @@ ALTER TABLE ONLY izzup_api.account
 
 
 --
--- Name: nugget_type uq_nugget_type_name; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+-- Name: account_role uq_acount_role_name; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.account_role
+    ADD CONSTRAINT uq_acount_role_name UNIQUE (account_id, name);
+
+
+--
+-- Name: member uq_member_uid; Type: CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.member
+    ADD CONSTRAINT uq_member_uid UNIQUE (uid);
+
+
+--
+-- Name: nugget_type uq_nugget_type_name; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
 --
 
 ALTER TABLE ONLY izzup_api.nugget_type
-    ADD CONSTRAINT uq_nugget_type_name UNIQUE (account_id, name);
+    ADD CONSTRAINT uq_nugget_type_name UNIQUE (name);
 
 
 --
@@ -1111,17 +1384,66 @@ ALTER TABLE ONLY izzup_api.nugget
 
 
 --
+-- Name: role uq_role_name; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.role
+    ADD CONSTRAINT uq_role_name UNIQUE (name);
+
+
+--
 -- Name: ix_account_member_member_uid; Type: INDEX; Schema: izzup_api; Owner: izzup_api
 --
 
-CREATE INDEX ix_account_member_member_uid ON izzup_api.account_member USING btree (member_uid) INCLUDE (account_id);
+CREATE INDEX ix_account_member_member_uid ON izzup_api.old_account_member USING btree (member_uid) INCLUDE (account_id);
 
 
 --
--- Name: ix_account_nuggets_by_type; Type: INDEX; Schema: izzup_api; Owner: izzup_api
+-- Name: account_group fk_account_group_account_id; Type: FK CONSTRAINT; Schema: izzup_api; Owner: postgres
 --
 
-CREATE INDEX ix_account_nuggets_by_type ON izzup_api.nugget USING btree (account_id, nugget_type_id) INCLUDE (id);
+ALTER TABLE ONLY izzup_api.account_group
+    ADD CONSTRAINT fk_account_group_account_id FOREIGN KEY (account_id) REFERENCES izzup_api.account(id) NOT VALID;
+
+
+--
+-- Name: account_member fk_account_member_account_id; Type: FK CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.account_member
+    ADD CONSTRAINT fk_account_member_account_id FOREIGN KEY (account_id) REFERENCES izzup_api.account(id);
+
+
+--
+-- Name: account_member fk_account_member_member_id; Type: FK CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.account_member
+    ADD CONSTRAINT fk_account_member_member_id FOREIGN KEY (member_id) REFERENCES izzup_api.member(id);
+
+
+--
+-- Name: account_nugget_type fk_account_nugget_type_account_id; Type: FK CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.account_nugget_type
+    ADD CONSTRAINT fk_account_nugget_type_account_id FOREIGN KEY (account_id) REFERENCES izzup_api.account(id) NOT VALID;
+
+
+--
+-- Name: account_role fk_account_role_account_id; Type: FK CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.account_role
+    ADD CONSTRAINT fk_account_role_account_id FOREIGN KEY (account_id) REFERENCES izzup_api.account(id) NOT VALID;
+
+
+--
+-- Name: nugget fk_nugget_account_id; Type: FK CONSTRAINT; Schema: izzup_api; Owner: izzup_api
+--
+
+ALTER TABLE ONLY izzup_api.nugget
+    ADD CONSTRAINT fk_nugget_account_id FOREIGN KEY (account_id) REFERENCES izzup_api.account(id) NOT VALID;
 
 
 --
@@ -1146,6 +1468,13 @@ GRANT ALL ON FUNCTION izzup_api.create_member_account() TO ultri_auth;
 
 
 --
+-- Name: FUNCTION new_member_from_user(); Type: ACL; Schema: izzup_api; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION izzup_api.new_member_from_user() TO izzup_api;
+
+
+--
 -- Name: FUNCTION register_member(uid_in text, email_in text, time_joined_in numeric); Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -1156,7 +1485,7 @@ GRANT ALL ON FUNCTION izzup_api.register_member(uid_in text, email_in text, time
 -- Name: TABLE account; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
-GRANT ALL ON TABLE izzup_api.account TO ultri_auth;
+GRANT SELECT,INSERT ON TABLE izzup_api.account TO ultri_auth;
 
 
 --
@@ -1170,7 +1499,7 @@ GRANT ALL ON SEQUENCE izzup_api.account_id_seq TO ultri_auth;
 -- Name: TABLE account_member; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
-GRANT ALL ON TABLE izzup_api.account_member TO ultri_auth;
+GRANT SELECT,INSERT ON TABLE izzup_api.account_member TO ultri_auth;
 
 
 --
@@ -1191,7 +1520,14 @@ GRANT ALL ON SEQUENCE izzup_api.block_types_id_seq TO ultri_auth;
 -- Name: TABLE member; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
-GRANT ALL ON TABLE izzup_api.member TO ultri_auth;
+GRANT SELECT,INSERT ON TABLE izzup_api.member TO ultri_auth;
+
+
+--
+-- Name: SEQUENCE member_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
+--
+
+GRANT SELECT,USAGE ON SEQUENCE izzup_api.member_id_seq TO ultri_auth;
 
 
 --
@@ -1237,17 +1573,17 @@ GRANT ALL ON TABLE izzup_api.nugget_reaction TO ultri_auth;
 
 
 --
--- Name: TABLE nugget_type; Type: ACL; Schema: izzup_api; Owner: izzup_api
+-- Name: TABLE old_account_member; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
-GRANT ALL ON TABLE izzup_api.nugget_type TO ultri_auth;
+GRANT ALL ON TABLE izzup_api.old_account_member TO ultri_auth;
 
 
 --
--- Name: SEQUENCE nugget_type_id_seq; Type: ACL; Schema: izzup_api; Owner: izzup_api
+-- Name: TABLE old_member; Type: ACL; Schema: izzup_api; Owner: izzup_api
 --
 
-GRANT ALL ON SEQUENCE izzup_api.nugget_type_id_seq TO ultri_auth;
+GRANT ALL ON TABLE izzup_api.old_member TO ultri_auth;
 
 
 --

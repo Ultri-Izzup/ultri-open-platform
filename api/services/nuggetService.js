@@ -9,7 +9,7 @@ const NuggetService = (postgres) => {
     try {
       const {
         rows,
-      } = await client.query('SELECT "nuggetUid","createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType" FROM izzup_api.member_nuggets($1, $2)', [
+      } = await client.query('SELECT "nuggetUid","createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType" FROM izzup_api.get_member_nuggets_by_type($1, $2)', [
         memberUid,
         nuggetType,
       ]);
