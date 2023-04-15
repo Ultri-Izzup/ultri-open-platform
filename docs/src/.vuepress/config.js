@@ -4,7 +4,7 @@ module.exports = {
   /**
    * Ref：https://v1.vuepress.vuejs.org/config/#title
    */
-  title: 'Vuepress Docs Boilerplate',
+  title: 'Ultri / Izzup',
   /**
    * Ref：https://v1.vuepress.vuejs.org/config/#description
    */
@@ -38,10 +38,6 @@ module.exports = {
         link: '/guide/',
       },
       {
-        text: 'Config',
-        link: '/config/'
-      },
-      {
         text: 'Code',
         link: 'https://github.com/Ultri-Izzup/ultri-open-platform'
       }
@@ -53,7 +49,11 @@ module.exports = {
           collapsable: false,
           children: [
             '',
-            'using-vue',
+            'installation',
+            'configuration',
+            'customization',
+            'scaling',
+            'security'
           ]
         }
       ],
