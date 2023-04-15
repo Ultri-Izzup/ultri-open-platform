@@ -99,7 +99,7 @@
 
 
       {{ editorBlocks }}
-      <NewBlockButton @addBlock="(event) => addBlock(event)"></NewBlockButton>
+      <NewBlockButton @addBlock="(event) => addBlock(event)" id="v-step-1"></NewBlockButton>
 
       <span v-if="editorBlocks.length < 1" class="text-h6"
         ><q-icon name="mdi-arrow-left" size="sm" class="q-pl-lg"></q-icon

@@ -7,7 +7,7 @@
         size="xl"
         label="Start Sharing"
         color="primary"
-        to="/article/new"
+        :to="{ name: 'new-article'}"
       ></q-btn>
     </div>
   </q-page>
