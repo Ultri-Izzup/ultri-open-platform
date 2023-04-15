@@ -47,10 +47,9 @@ export default defineConfig({
     },
 
     socialLinks: [
-      {
-        icon: 'github',
-        link: 'https://github.com/ultri-izzup/ultri-open-platform',
-      },
+      { icon: 'github', link: 'https://github.com/ultri-izzup/ultri-open-platform' },
+      { icon: 'facebook', link: 'https://www.facebook.com/OpenSourceBike/' },
+      { icon: 'linkedin', link: 'https://www.linkedin.com/company/open-source-bike' }
     ],
   },
 });

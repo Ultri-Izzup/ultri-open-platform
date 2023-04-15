@@ -37,16 +37,35 @@ export default defineConfig({
       {
         text: 'Development',
         items: [
+          { text: 'Roadmap', link: '/development/roadmap' },
           { text: 'New application', link: '/development/new-application' },
           { text: 'Contribute', link: '/development/contribute' }
           
+        ]
+      },
+      {
+        text: 'Technical Support',
+        items: [
+          { text: 'Repository Structure', link: '/platform/repository' },
+          { text: 'Docker', link: '/platform/docker' },
+          { text: 'Authentication', link: '/platform/authentication' },
+          { text: 'Authorization', link: '/platform/authorization' },
+          { text: 'Gateway Server', link: '/platform/gateway' },
+          { text: 'Nugget API', link: '/platform/nugget-api' },
+          { text: 'Front End', link: '/platform/frontend' },
+          { text: 'Security', link: '/platform/security' },
+          { text: 'Postgres', link: '/platform/postgres' },
+          { text: 'Redis', link: '/platform/redis' },
+          { text: 'Contact Support', link: '/platform/support' },
         ]
       }
     ]
   ,
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/ultri-izzup/ultri-open-platform' }
+      { icon: 'github', link: 'https://github.com/ultri-izzup/ultri-open-platform' },
+      { icon: 'facebook', link: 'https://www.facebook.com/OpenSourceBike/' },
+      { icon: 'linkedin', link: 'https://www.linkedin.com/company/open-source-bike' }
     ]
   }
 })
