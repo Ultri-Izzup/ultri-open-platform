@@ -18,8 +18,7 @@ export default defineConfig({
         text: 'Install',
         items: [
           { text: 'Prerequisites', link: '/install/prerequisites' },
-          { text: 'Get code', link: '/install/get-code' }
-          
+          { text: 'Get code', link: '/install/get-code' }          
         ]
       },
       {
@@ -28,10 +27,7 @@ export default defineConfig({
           { text: 'Color and Style', link: '/customize/color-and-style' },
           { text: 'Gateway Routes', link: '/customize/gateway' },
           { text: 'API Services', link: '/customize/api' },
-          { text: 'User Interface', link: '/customize/frontend' },
-
-
-          
+          { text: 'User Interface', link: '/customize/frontend' },          
         ]
       },
       {
@@ -39,8 +35,8 @@ export default defineConfig({
         items: [
           { text: 'Roadmap', link: '/development/roadmap' },
           { text: 'New application', link: '/development/new-application' },
-          { text: 'Contribute', link: '/development/contribute' }
-          
+          { text: 'Contribute', link: '/development/contribute' },
+          { text: 'Swagger', link: '/development/swagger' }          
         ]
       },
       {
