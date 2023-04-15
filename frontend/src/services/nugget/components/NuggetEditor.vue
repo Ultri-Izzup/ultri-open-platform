@@ -1,12 +1,12 @@
 <template>
   <div class="nugget-container full-width">
 
-      <q-input v-model="nuggetTitle" class="fit title-field q-px-md" autogrow placeholder="Add a Title" hide-bottom-space></q-input>
+      <q-input id="v-step-0" v-model="nuggetTitle" class="fit title-field q-px-md" autogrow placeholder="Add a Title" hide-bottom-space></q-input>
 
 
     <BlocksEditor class="full-width"></BlocksEditor>
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
-            <q-btn fab icon="mdi-content-save" color="accent"></q-btn>
+            <q-btn fab icon="mdi-content-save" color="accent" id="v-step-2"></q-btn>
           </q-page-sticky>
   </div>
 </template>
