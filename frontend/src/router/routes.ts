@@ -59,7 +59,7 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/article/new',
+    path: '/new/article',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
