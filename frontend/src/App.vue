@@ -24,7 +24,7 @@ router.beforeEach(async (to, from) => {
       console.log('NO AUTH SESSION', to.path);
 
       auth.setTargetUrl(to.path);
-      auth.setAuthFailed(true);
+      auth.setSignInRequired(true);
 
       // showPasswordlessDialog()
       return from.path;

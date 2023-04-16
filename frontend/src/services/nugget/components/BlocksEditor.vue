@@ -80,7 +80,6 @@
               @save="(event) => saveBlock(block.id, event)"
               @close="closeEditor(block.id)"
               :dataCySlug="'block-edit-' + ix"
-              :authed="authed"
               @authRequired="emit('authRequired', true)"
               @fileProvided="
                 (providedFile) => emit('fileProvided', providedFile)
@@ -89,8 +88,7 @@
               @notification="
                 (notification) => emit('notification', notification)
               "
-              :flowId="flowId"
-            ></component>
+              ></component>
           </div>
         </div>
       </div>
@@ -139,16 +137,7 @@ const props = defineProps({
   },
 });
 
-let nugget;
-
-if(nuggetStore.isUuid(props.nuggetId)) {
-
-} else {
-  console.log(nuggetStore.localDrafts.get(props.nuggetId))
-  nugget = nuggetStore.localDrafts.get(props.nuggetId);
-  nugget.blocks = []
-}
-
+const nugget = nuggetStore.getNuggetById(props.nuggetId)
 
 const comps = {
   HtmlBlock,

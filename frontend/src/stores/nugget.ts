@@ -7,6 +7,8 @@ import { nanoid } from "nanoid";
 
 const auth = useAuthStore();
 
+const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+
 export const useNuggetStore = defineStore('nugget', {
   state: () => ({
     // Map of nuggets by Uid
@@ -27,18 +29,36 @@ export const useNuggetStore = defineStore('nugget', {
 
     addDraft(nuggetType) {
       const draftId = nanoid();
-      this.localDrafts.set(draftId, { nuggetType: nuggetType });
+      this.localDrafts.set(draftId, { nuggetType: nuggetType, blocks: [] });
       return draftId;
     },
 
-    isUuid(id) {
+    getNuggetById(nuggetId) {
 
-      const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+      if (uuidRegex.test(nuggetId)) {
+        return this.nuggets.get(nuggetId)
+      } else {
+        return this.localDrafts.get(nuggetId)
+      }
 
-      return uuidRegex.test(id)
-    }
+    },
+
+    async saveNugget(nuggetId) {
+
+      // Require authentication
+      if(!auth.isSignedIn) {
+        auth.setSignInRequired(true)
+      } else {
+        if (uuidRegex.test(nuggetId)) {
+          // Save existing nugget
+        } else {
+          // Create new backend nugget from draft
+        }
+
+      }
 
 
+    },
 
     /*
     async fetchNuggetsByType(nuggetType, accountUid=null) {

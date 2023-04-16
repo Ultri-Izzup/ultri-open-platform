@@ -120,6 +120,6 @@ const locales = [
 
 const triggerSignInDialog = async () => {
   auth.setTargetUrl('/');
-  auth.setAuthFailed(true);
+  auth.setSignInRequired(true);
 }
 </script>

@@ -1,13 +1,13 @@
 <template>
   <div class="nugget-container full-width">
-
+{{ nugget  }}
     <q-input v-model="nugget.publicTitle" class="fit title-field q-px-md" autogrow placeholder="Add a Title"
       hide-bottom-space></q-input>
 
 
     <BlocksEditor class="full-width" :nuggetId="nuggetId"></BlocksEditor>
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
-      <q-btn push fab icon="mdi-content-save" color="accent" @click="saveNugget">
+      <q-btn push fab icon="mdi-content-save" color="accent" @click="saveNugget(nuggetId)">
       </q-btn>
     </q-page-sticky>
   </div>
@@ -27,18 +27,17 @@ const props = defineProps({
   },
 });
 
-let nugget;
+const nugget = nuggetStore.getNuggetById(props.nuggetId)
 
-if(nuggetStore.isUuid(props.nuggetId)) {
 
-} else {
-  console.log(nuggetStore.localDrafts.get(props.nuggetId))
-  nugget = nuggetStore.localDrafts.get(props.nuggetId);
-}
-
-const saveNugget= (event) => {
-  console.log(event)
+const saveNugget= (nuggetId) => {
+  console.log(nuggetId)
   console.log(nugget)
+  // Save to API
+  nuggetStore.saveNugget(nuggetId)
+
+  // Change route to new nugget ID
+  // nugget/:nuggetId
 };
 
 </script>

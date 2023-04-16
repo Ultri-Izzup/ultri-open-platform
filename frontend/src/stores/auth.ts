@@ -14,8 +14,8 @@ export const useAuthStore = defineStore('auth', {
     targetUrl: useStorage('targetUrl', null ),
     memberEmail: useStorage('memberEmail', null),
     memberUid: useStorage('memberUid', null),
-    authFailed: useStorage('authFailed', false),
-    authFailedMsg: useStorage('authFailedMsg', null),
+    signInRequired: useStorage('signInRequired', false),
+    signInRequiredMsg: useStorage('signInRequiredMsg', null),
     createdAt: useStorage('createdAt', null),
     isNewMember: false
   }),
@@ -38,21 +38,21 @@ export const useAuthStore = defineStore('auth', {
       this.targetUrl = null;
       this.memberEmail = null;
       this.memberUid = null;
-      this.authFailed = false,
-      this.authFailedMsg = null,
+      this.signInRequired = false,
+      this.signInRequiredMsg = null,
       this.createdAt = null,
       this.isNewMember = false
     },
     setTargetUrl(url) {
       this.targetUrl = url;
     },
-    setAuthFailed(bool) {
-      this.authFailed = bool;
+    setSignInRequired(bool) {
+      this.signInRequired = bool;
     },
-    setAuthFailedMsg(msg) {
+    setSignInRequiredMsg(msg) {
       console.log(msg)
-      this.authFailedMsg = msg;
-      this.authFailed = true;
+      this.signInRequiredMsg = msg;
+      this.signInRequired = true;
     },
     setMember(id, email, createdAt) {
       console.log()

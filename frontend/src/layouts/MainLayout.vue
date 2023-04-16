@@ -41,7 +41,7 @@
 
     <q-page-container>
       <PasswordlessAuthDialog
-        v-model="auth.authFailed"
+        v-model="auth.signInRequired"
       ></PasswordlessAuthDialog>
       <WelcomeDialog
         v-model="auth.isNewMember"

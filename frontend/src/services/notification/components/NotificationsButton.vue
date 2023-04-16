@@ -3,7 +3,7 @@
     flat
     dense
     icon="mdi-bell"
-    @click="auth.setAuthFailedMsg(t('auth.passwordless.dialog.notification-requires-auth'))"
+    @click="auth.setSignInRequiredMsg(t('auth.passwordless.dialog.notification-requires-auth'))"
     v-if="!auth.isSignedIn"
   ></q-btn>
   <q-btn
@@ -23,7 +23,7 @@ const auth = useAuthStore();
 
 const triggerSignInDialog = async () => {
   auth.setTargetUrl('/');
-  auth.setAuthFailed(true);
+  auth.setSignInRequired(true);
 }
 
 const { t } = useI18n();
