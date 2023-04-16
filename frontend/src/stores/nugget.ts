@@ -3,6 +3,8 @@ import { useStorage } from '@vueuse/core';
 
 import { useAuthStore } from './auth';
 
+import { nanoid } from "nanoid";
+
 const auth = useAuthStore();
 
 export const useNuggetStore = defineStore('nugget', {
@@ -10,7 +12,7 @@ export const useNuggetStore = defineStore('nugget', {
     // Map of nuggets by Uid
     nuggets: useStorage('nuggets', new Map()),
     // Local only drafts
-    localDrafts: useStorage('localDrafts', new Map()),
+    localDrafts: new Map(),
   }),
   getters: {
     get(state) {
@@ -22,6 +24,23 @@ export const useNuggetStore = defineStore('nugget', {
       this.nuggets = new Map();
       this.localDrafts = new Map();
     },
+
+    addDraft(nuggetType) {
+      const draftId = nanoid();
+      this.localDrafts.set(draftId, { nuggetType: nuggetType });
+      return draftId;
+    },
+
+    isUuid(id) {
+
+      const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+
+      return uuidRegex.test(id)
+    }
+
+
+
+    /*
     async fetchNuggetsByType(nuggetType, accountUid=null) {
 
     },
@@ -49,6 +68,7 @@ export const useNuggetStore = defineStore('nugget', {
     async unPublishNugget(nuggetUid) {
 
     }
+    */
   }
 
 });

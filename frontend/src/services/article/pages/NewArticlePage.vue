@@ -1,7 +1,7 @@
 <template>
   <q-page class="row justify-evenly">
     <div class="editor-container fit">
-      <NuggetEditor :nugget="{}" @save="saveNugget($event)"></NuggetEditor>
+      <NuggetEditor :nuggetId="draftId"></NuggetEditor>
     </div>
     <!--  -->
   </q-page>
@@ -10,18 +10,15 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 
+import { useNuggetStore } from '../../../stores/nugget';
+
+const nuggetStore = useNuggetStore();
+const draftId = nuggetStore.addDraft('article');
+console.log(draftId)
+
+
 import NuggetEditor from '../../nugget/components/NuggetEditor.vue';
 
-import { useAuthStore } from '../../../stores/auth';
-const auth = useAuthStore();
-
-const { t } = useI18n();
 </script>
 
-<style lang="scss">
-.editor-container {
-  margin-bottom: 1em;
-  min-width: 330px;
-  max-width: 900px;
-}
-</style>
+

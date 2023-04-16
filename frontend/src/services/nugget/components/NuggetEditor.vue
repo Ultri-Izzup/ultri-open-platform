@@ -1,41 +1,46 @@
 <template>
   <div class="nugget-container full-width">
 
-      <q-input id="v-step-0" v-model="nuggetTitle" class="fit title-field q-px-md" autogrow placeholder="Add a Title" hide-bottom-space></q-input>
+    <q-input v-model="nugget.publicTitle" class="fit title-field q-px-md" autogrow placeholder="Add a Title"
+      hide-bottom-space></q-input>
 
 
-    <BlocksEditor class="full-width"></BlocksEditor>
+    <BlocksEditor class="full-width" :nuggetId="nuggetId"></BlocksEditor>
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
-            <q-btn fab icon="mdi-content-save" color="accent" id="v-step-2"></q-btn>
-          </q-page-sticky>
+      <q-btn push fab icon="mdi-content-save" color="accent" @click="saveNugget">
+      </q-btn>
+    </q-page-sticky>
   </div>
 </template>
 
 <script setup>
-import { ref, unref } from 'vue';
+
 import BlocksEditor from './BlocksEditor.vue';
 
-const emit = defineEmits(['change', 'fileProvided']);
+import { useNuggetStore } from '../../../stores/nugget';
+
+const nuggetStore = useNuggetStore();
 
 const props = defineProps({
-  nugget: {
-    type: [Object],
+  nuggetId: {
+    type: String,
   },
 });
 
-const blocks = ref([]);
-if (props.nugget.blocks) {
-  blocks.value = ref(props.nugget.blocks);
+let nugget;
+
+if(nuggetStore.isUuid(props.nuggetId)) {
+
+} else {
+  console.log(nuggetStore.localDrafts.get(props.nuggetId))
+  nugget = nuggetStore.localDrafts.get(props.nuggetId);
 }
-console.log(props);
-const saveBlocks = (event) => {
-  const newNugget = [{ id: props.nugget.id, blocks: unref(event) }];
-  emit('change', newNugget);
+
+const saveNugget= (event) => {
+  console.log(event)
+  console.log(nugget)
 };
 
-const nuggetTitle = ref(null);
-
-const title = ref(null);
 </script>
 
 <style lang="scss">
@@ -46,6 +51,7 @@ const title = ref(null);
   position: relative;
   min-width: 330px;
 }
+
 .q-textarea .q-field__native {
   font-size: 2.5em;
   line-height: 1.5em;
