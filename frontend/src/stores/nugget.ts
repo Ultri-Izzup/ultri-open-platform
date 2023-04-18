@@ -3,11 +3,14 @@ import { useStorage } from '@vueuse/core';
 
 import { useAuthStore } from './auth';
 
-import { nanoid } from "nanoid";
+import { izzupApi } from '../boot/axios'
+
+import { nanoid } from 'nanoid';
 
 const auth = useAuthStore();
 
-const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+const uuidRegex =
+  /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
 
 export const useNuggetStore = defineStore('nugget', {
   state: () => ({
@@ -18,8 +21,8 @@ export const useNuggetStore = defineStore('nugget', {
   }),
   getters: {
     get(state) {
-      return state
-    }
+      return state;
+    },
   },
   actions: {
     reset() {
@@ -34,30 +37,51 @@ export const useNuggetStore = defineStore('nugget', {
     },
 
     getNuggetById(nuggetId) {
-
       if (uuidRegex.test(nuggetId)) {
-        return this.nuggets.get(nuggetId)
+        return this.nuggets.get(nuggetId);
       } else {
-        return this.localDrafts.get(nuggetId)
+        return this.localDrafts.get(nuggetId);
       }
-
     },
 
     async saveNugget(nuggetId) {
 
       // Require authentication
-      if(!auth.isSignedIn) {
-        auth.setSignInRequired(true)
+      if (!auth.isSignedIn) {
+        auth.setSignInRequired(true);
       } else {
         if (uuidRegex.test(nuggetId)) {
           // Save existing nugget
         } else {
           // Create new backend nugget from draft
+          await this.saveDraft(nuggetId);
         }
-
       }
+    },
 
+    async saveDraft(nuggetId) {
+      // Require authentication
 
+      if (!auth.isSignedIn) {
+        auth.setSignInRequired(true);
+      } else {
+        // Post to new nugget
+        const apiResponse = await izzupApi.post(
+          '/nugget',
+          this.localDrafts.get(nuggetId)
+        );
+
+        const newNugget = {
+          ...apiResponse.data,
+          ...this.localDrafts.get(nuggetId),
+        };
+
+        this.nuggets.set(apiResponse.data.uid, newNugget);
+
+        this.localDrafts.delete(nuggetId);
+
+        this.router.push({name: 'nugget-editor', params: {nuggetId: apiResponse.data.uid}});
+      }
     },
 
     /*
@@ -89,6 +113,5 @@ export const useNuggetStore = defineStore('nugget', {
 
     }
     */
-  }
-
+  },
 });

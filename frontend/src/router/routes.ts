@@ -73,6 +73,20 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
+    path: '/nugget/:nuggetId',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () =>
+          import('src/services/article/pages/EditNuggetPage.vue'),
+        name: 'nugget-editor',
+      },
+    ],
+    meta: {},
+  },
+
+  {
     path: '/member/posts',
     component: () => import('layouts/MainLayout.vue'),
     children: [

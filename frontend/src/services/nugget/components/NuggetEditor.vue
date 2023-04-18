@@ -35,9 +35,6 @@ const saveNugget= (nuggetId) => {
   console.log(nugget)
   // Save to API
   nuggetStore.saveNugget(nuggetId)
-
-  // Change route to new nugget ID
-  // nugget/:nuggetId
 };
 
 </script>

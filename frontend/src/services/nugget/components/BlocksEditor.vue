@@ -237,13 +237,6 @@ const saveBlock = async (blockId, data) => {
   nugget.blocks[blockIx].data = data.newData;
 };
 
-const propBlocks = toRefs(props).blocks;
-
-watch(propBlocks, (newValue) => {
-  if (newValue.length < 1) {
-    nugget.blocks = [];
-  }
-});
 </script>
 
 <style lang="scss">
