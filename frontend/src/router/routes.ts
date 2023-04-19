@@ -49,8 +49,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        component: () => import('src/services/article/pages/ArticlesPage.vue'),
-        name: 'member-articles',
+        component: () => import('src/services/nugget/pages/EditNuggetPage.vue'),
+        name: 'edit-nugget',
       },
     ],
     meta: {
@@ -79,7 +79,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: '',
         component: () =>
-          import('src/services/article/pages/EditNuggetPage.vue'),
+          import('src/services/nugget/pages/EditNuggetPage.vue'),
         name: 'nugget-editor',
       },
     ],
