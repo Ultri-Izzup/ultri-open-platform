@@ -6,8 +6,11 @@
 
 <template>
   <div class="row col-12 q-pa-sm">
+
+    {{  nuggetId }}
+
     <div
-      v-for="(block, ix) in editorBlocks"
+      v-for="(block, ix) in nugget.blocks"
       :key="ix"
       class="row col-12 block-container"
     >
@@ -40,7 +43,7 @@
                   clickable
                   v-close-popup
                   @click="moveDown(ix)"
-                  :disable="ix == editorBlocks.length - 1"
+                  :disable="ix == nugget.blocks.length - 1"
                 >
                   <q-item-section avatar>
                     <q-icon name="mdi-arrow-down-bold"></q-icon>
@@ -80,7 +83,6 @@
               @save="(event) => saveBlock(block.id, event)"
               @close="closeEditor(block.id)"
               :dataCySlug="'block-edit-' + ix"
-              :authed="authed"
               @authRequired="emit('authRequired', true)"
               @fileProvided="
                 (providedFile) => emit('fileProvided', providedFile)
@@ -89,19 +91,16 @@
               @notification="
                 (notification) => emit('notification', notification)
               "
-              :flowId="flowId"
-            ></component>
+              ></component>
           </div>
         </div>
       </div>
     </div>
     <div class="row col-12 q-pa-sm">
 
+      <NewBlockButton @addBlock="(event) => addBlock(event)"></NewBlockButton>
 
-      {{ editorBlocks }}
-      <NewBlockButton @addBlock="(event) => addBlock(event)" id="v-step-1"></NewBlockButton>
-
-      <span v-if="editorBlocks.length < 1" class="text-h6"
+      <span v-if="nugget.blocks.length < 1" class="text-h6"
         ><q-icon name="mdi-arrow-left" size="sm" class="q-pl-lg"></q-icon
       > Add content </span>
 
@@ -110,7 +109,8 @@
 </template>
 
 <script setup>
-import { ref, watch, toRefs } from "vue";
+import { ref, watch, toRefs, onMounted } from "vue";
+import { useQuasar } from 'quasar'
 
 import { nanoid } from "nanoid";
 
@@ -130,6 +130,20 @@ import SeparatorBlock from "./renders/SeparatorBlock.vue";
 import TimelineBlock from "./renders/TimelineBlock.vue";
 import JsonBlock from "./renders/JsonBlock.vue";
 
+import { useNuggetStore } from '../../../stores/nugget';
+
+const nuggetStore = useNuggetStore();
+
+const props = defineProps({
+  nuggetId: {
+    type: String,
+  },
+});
+
+const nugget = nuggetStore.getNuggetById(props.nuggetId);
+console.log('WTF', props.nuggetId)
+console.log('WTF', nuggetStore.nuggets)
+
 const comps = {
   HtmlBlock,
   HtmlEditor,
@@ -142,66 +156,35 @@ const comps = {
   TimelineBlock,
 };
 
-const emit = defineEmits([
-  "change",
-  "authRequired",
-  "fileProvided",
-  "notification",
-]);
 
-const props = defineProps({
-  blocks: {
-    type: Array,
-  },
-  flush: {
-    type: Boolean,
-    default: false,
-  },
-  authed: {
-    type: Boolean,
-    default: false,
-  },
-  flowId: {
-    type: String,
-    default: null,
-  },
-});
-
-const editorBlocks = ref([]);
-if (props.blocks) {
-  editorBlocks.value = [...props.blocks];
-}
 
 const addBlock = (blockDef) => {
   const newId = nanoid();
-  editorBlocks.value.push({ id: newId, type: blockDef.type, data: null });
+  nugget.blocks.push({ id: newId, type: blockDef.type, data: null });
   inEdit.value.push(newId);
 };
 
 const moveUp = (ix) => {
   // Save data for element we are moving
-  const el = editorBlocks.value[ix];
-  // Overwrite our element with the previosu element data
-  editorBlocks.value[ix] = editorBlocks.value[ix - 1];
+  const el = nugget.blocks[ix];
+  // Overwrite our element with the previous element data
+  nugget.blocks[ix] = nugget.blocks[ix - 1];
   // Set the previous index to our element data
-  editorBlocks.value[ix - 1] = el;
-  emit("change", editorBlocks.value);
+  nugget.blocks[ix - 1] = el;
 };
 
 const moveDown = (ix) => {
   // Save data for element we are moving
-  const el = editorBlocks.value[ix];
+  const el = nugget.blocks[ix];
   // Overwrite our element with the previosu element data
-  editorBlocks.value[ix] = editorBlocks.value[ix + 1];
+  nugget.blocks[ix] = nugget.blocks[ix + 1];
   // Set the previous index to our element data
-  editorBlocks.value[ix + 1] = el;
-  emit("change", editorBlocks.value);
+  nugget.blocks[ix + 1] = el;
 };
 
 const deleteBlock = async (blockId) => {
-  const newBlocks = editorBlocks.value.filter((block) => block.id !== blockId);
-  editorBlocks.value = newBlocks;
-  emit("change", newBlocks);
+  const newBlocks = nugget.blocks.filter((block) => block.id !== blockId);
+  nugget.blocks = newBlocks;
 };
 
 // Map a block type to a renderer
@@ -253,21 +236,12 @@ const closeEditor = (blockId) => {
 
 const saveBlock = async (blockId, data) => {
   // Get the
-  const blockIx = editorBlocks.value.findIndex((x) => x.id === blockId);
+  const blockIx = nugget.blocks.findIndex((x) => x.id === blockId);
 
   // Set the data of the blockIX item to the string after sanitizing
-  editorBlocks.value[blockIx].data = data.newData;
-
-  emit("change", editorBlocks);
+  nugget.blocks[blockIx].data = data.newData;
 };
 
-const propBlocks = toRefs(props).blocks;
-
-watch(propBlocks, (newValue) => {
-  if (newValue.length < 1) {
-    editorBlocks.value = [];
-  }
-});
 </script>
 
 <style lang="scss">

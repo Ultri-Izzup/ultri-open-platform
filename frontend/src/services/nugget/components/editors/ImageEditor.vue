@@ -244,21 +244,13 @@ const props = defineProps({
     type: String,
     default: "img",
   },
-  authed: {
-    type: Boolean,
-    default: false,
-  },
-  flowId: {
+  nuggetId: {
     type: String,
     default: null,
   },
 });
 
 const emit = defineEmits([
-  "close",
-  "delete",
-  "save",
-  "authRequired",
   "fileProvided",
   "notification",
 ]);
@@ -325,40 +317,13 @@ const showUrlDialog = () => {
     });
 };
 
-const showUploadDialog = () => {
-  let isUsed = false;
-
-  if (props.authed) {
-    $q.dialog({
-      component: UploadDialog,
-      // props forwarded to your custom component
-      componentProps: {},
-    })
-      .onOk((providedFile) => {
-        // emit("fileProvided", providedFile);
-        uploadFile(providedFile);
-        isUsed = true;
-      })
-      .onCancel(() => {
-        console.log('canceled')
-      })
-      .onDismiss(() => {
-        if (!isUsed) {
-          emit("delete", true);
-        }
-      });
-  } else {
-    emit("authRequired", true);
-  }
-};
-
 const showImgSourceDialog = () => {
   $q.dialog({
     component: ImgSourceDialog,
 
     // props forwarded to your custom component
     componentProps: {
-      flowId: props.flowId,
+      nuggetId: props.nuggetId,
     },
   })
     .onOk((option) => {
@@ -400,7 +365,7 @@ if (!editorData.imageSource) {
 const uploadFile = async (file) => {
   try {
     const key = await Storage.put(
-      "story/" + props.flowId + "/" + file.name,
+      "story/" + props.nuggetId + "/" + file.name,
       file,
       {
         level: "private",

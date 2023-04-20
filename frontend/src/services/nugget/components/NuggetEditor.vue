@@ -1,51 +1,76 @@
 <template>
   <div class="nugget-container full-width">
+    NUGGET: {{  nugget }}
+    <br />
+    Saved Nuggets:
+    {{
+      nuggetStore.savedNuggets }}
+    <br />
+    Open Nuggets:
+    {{ nuggetStore.openNuggets }}
 
-      <q-input id="v-step-0" v-model="nuggetTitle" class="fit title-field q-px-md" autogrow placeholder="Add a Title" hide-bottom-space></q-input>
+
+    <q-input
+      v-model="nugget.publicTitle"
+      class="fit title-field q-px-md"
+      autogrow
+      placeholder="Add a Title"
+      hide-bottom-space
+    ></q-input>
 
 
-    <BlocksEditor class="full-width"></BlocksEditor>
+    <!--<BlocksEditor class="full-width" :nuggetUid="nuggetUid"></BlocksEditor> -->
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
-            <q-btn fab icon="mdi-content-save" color="accent" id="v-step-2"></q-btn>
-          </q-page-sticky>
+      <q-btn
+        push
+        fab
+        icon="mdi-content-save"
+        color="accent"
+        @click="saveNugget(nuggetUid)"
+      >
+      </q-btn>
+    </q-page-sticky>
   </div>
 </template>
 
 <script setup>
-import { ref, unref } from 'vue';
+import { ref, onMounted } from 'vue';
+
+// import { storeToRefs } from 'pinia';
+
 import BlocksEditor from './BlocksEditor.vue';
 
-const emit = defineEmits(['change', 'fileProvided']);
+import { useNuggetStore } from '../../../stores/nugget';
+const nuggetStore = useNuggetStore();
 
 const props = defineProps({
-  nugget: {
-    type: [Object],
+  nuggetUid: {
+    type: String,
   },
 });
 
-const blocks = ref([]);
-if (props.nugget.blocks) {
-  blocks.value = ref(props.nugget.blocks);
-}
-console.log(props);
-const saveBlocks = (event) => {
-  const newNugget = [{ id: props.nugget.id, blocks: unref(event) }];
-  emit('change', newNugget);
+console.log('Nugget UID', props.nuggetUid);
+
+const nugget = nuggetStore.editableNuggetByUid(props.nuggetUid);
+
+console.log(nugget);
+
+const saveNugget = (nuggetUid) => {
+  console.log(nuggetUid);
+  console.log(nugget);
+  // Save to API
+  nuggetStore.saveNugget(nuggetUid);
 };
-
-const nuggetTitle = ref(null);
-
-const title = ref(null);
 </script>
 
 <style lang="scss">
 .nugget-container {
-
   padding: 1px;
   margin: 0.5em 0.5em 1em 0.5em;
   position: relative;
   min-width: 330px;
 }
+
 .q-textarea .q-field__native {
   font-size: 2.5em;
   line-height: 1.5em;

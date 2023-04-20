@@ -29,7 +29,7 @@ import { ref, unref } from "vue";
 import { useDialogPluginComponent } from "quasar";
 
 const props = defineProps({
-  flowId: { type: String, required: false, default: null },
+  nuggetId: { type: String, required: false, default: null },
 });
 
 defineEmits([
@@ -51,7 +51,7 @@ const sourceRequiresSave = ["upload", "camera"];
 
 const onOKClick = (source) => {
   // on OK, it is REQUIRED to
-  if (sourceRequiresSave.includes(source) && !props.flowId) {
+  if (sourceRequiresSave.includes(source) && !props.nuggetId) {
     onDialogOK({ error: "Saving is required before uploading." });
   } else {
     onDialogOK({ source: source });

@@ -82,7 +82,7 @@ const auth = useAuthStore();
 
 const triggerSignInDialog = async () => {
   auth.setTargetUrl('/');
-  auth.setAuthFailed(true);
+  auth.setSignInRequired(true);
   console.log(auth.targetUrl)
 }
 

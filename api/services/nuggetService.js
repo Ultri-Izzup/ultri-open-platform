@@ -22,6 +22,37 @@ const NuggetService = (postgres) => {
     }
   };
 
+  const getNugget = async (memberUid, nuggetType) => {
+    const client = await postgres.connect();
+
+    try {
+      const {
+        rows,
+      } = await client.query('SELECT "nuggetUid","createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType" FROM izzup_api.get_member_nuggets_by_type($1, $2)', [
+        memberUid,
+        nuggetType,
+      ]);
+
+      /*
+      SELECT *, permissions->>'nuggets' as nug_perm
+      FROM izzup_api.member_permissions mp
+      -- WHERE mp.permissions @> '{"nuggets": "all"}'
+      -- WHERE mp.permissions->>'nuggets' = 'all'
+      -- WHERE mp.permissions->'nuggets'->>'article' = '["c", "r", "u", "d", "pub"]'
+      -- WHERE mp.permissions @> '{"nuggets":{"article": ["c", "r", "u", "d", "pub"]}}';
+      WHERE mp.permissions @> '{"all": "all"}'
+      OR mp.permissions @> '{"nuggets": "all"}'
+      OR mp.permissions @> '{"nuggets":{"article": ["r"]}}' ;
+      */
+
+      // Note: avoid doing expensive computation here, this will block releasing the client
+      return rows;
+    } finally {
+      // Release the client immediately after query resolves, or upon error
+      client.release();
+    }
+  };
+
   const createNugget = async (nuggetData, authMemberId) => {
     const client = await postgres.connect();
 
@@ -89,6 +120,8 @@ const NuggetService = (postgres) => {
 
   return { getMemberNuggets, createNugget };
 };
+
+
 
 export default fp((server, options, next) => {
   server.decorate("nuggetService", NuggetService(server.pg));
