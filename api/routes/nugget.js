@@ -251,7 +251,7 @@ async function nuggetRoutes(server, options) {
       preHandler: verifySession(),
       schema: {
         description: "Returns a specific nugget",
-        tags: ["member"],
+        tags: ["nugget"],
         params: {
           type: "object",
           properties: {
@@ -273,17 +273,17 @@ async function nuggetRoutes(server, options) {
       },
     },
     async (request, reply) => {
-      if (request.query.t) {
-        let userId = request.session.getUserId();
 
-        const nuggets = await server.nuggetService.getNugget(nuggetUid, userId);
+      let userId = request.session.getUserId();
 
-        return {
-          nuggets: nuggets,
-        };
-      } else {
-        reply.code(400);
-      }
+      const nuggetUid = request.params.nuggetUid;
+
+      const nugget = await server.nuggetService.getNugget(nuggetUid, userId);
+
+      return {
+        nugget: nugget,
+      };
+
     }
   );
 
