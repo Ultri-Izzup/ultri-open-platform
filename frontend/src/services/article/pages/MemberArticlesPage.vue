@@ -12,7 +12,7 @@ import { useI18n } from "vue-i18n";
 
 import { izzupApi } from 'boot/axios'
 
-import { inject, onMounted } from "vue";
+import {  onMounted } from "vue";
 
 import { useAuthStore } from '../../../stores/auth';
 const auth = useAuthStore();

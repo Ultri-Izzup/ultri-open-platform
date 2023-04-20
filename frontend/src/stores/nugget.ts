@@ -9,15 +9,19 @@ import { nanoid } from 'nanoid';
 
 const auth = useAuthStore();
 
-const uuidRegex =
+const isUUID =
   /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
 
 export const useNuggetStore = defineStore('nugget', {
   state: () => ({
-    // Map of nuggets by Uid
-    nuggets: useStorage('nuggets', new Map()),
-    // Local only drafts
-    localDrafts: new Map(),
+    // Map of nuggets by Uid.
+    // Saved to Local Storage on change
+    savedNuggets: useStorage('savedNuggets', {} ),
+    // Editable Nuggets.
+    // These can be addressed directly in any Vue file.
+    // "Saving" the nugget will copy the current state to savedNuggets.
+    // "Saving" will also persist to cloud if on network.
+    openNuggets: new Map() ,
   }),
   getters: {
     get(state) {
@@ -26,61 +30,89 @@ export const useNuggetStore = defineStore('nugget', {
   },
   actions: {
     reset() {
-      this.nuggets = new Map();
-      this.localDrafts = new Map();
+      this.savedNuggets = {};
+      this.openNuggets = new Map;
     },
 
     addDraft(nuggetType) {
       const draftId = nanoid();
-      this.localDrafts.set(draftId, { nuggetType: nuggetType, blocks: [] });
+      const baseObject = { nuggetType: nuggetType, blocks: [] }
+      this.openNuggets.set(draftId, baseObject);
+      console.log('BASE OBJECT', baseObject)
       return draftId;
     },
 
-    getNuggetById(nuggetId) {
-      if (uuidRegex.test(nuggetId)) {
-        return this.nuggets.get(nuggetId);
-      } else {
-        return this.localDrafts.get(nuggetId);
+    editableNuggetByUid(nuggetUid) {
+      if(!this.openNuggets.has(nuggetUid) && this.savedNuggets.hasOwnProperty(nuggetUid)) {
+        const nugget = this.savedNuggets[nuggetUid];
+        this.openNuggets.set(nuggetUid, nugget);
       }
+
+      return this.openNuggets.get(nuggetUid);
+
     },
 
-    async saveNugget(nuggetId) {
+    async saveNugget(nuggetUid) {
 
       // Require authentication
       if (!auth.isSignedIn) {
         auth.setSignInRequired(true);
       } else {
-        if (uuidRegex.test(nuggetId)) {
+        if (isUUID.test(nuggetUid)) {
           // Save existing nugget
+          await this.savePersistedNugget(nuggetUid);
         } else {
           // Create new backend nugget from draft
-          await this.saveDraft(nuggetId);
+          await this.saveDraft(nuggetUid);
         }
       }
     },
 
-    async saveDraft(nuggetId) {
+    async savePersistedNugget(nuggetUid) {
       // Require authentication
 
       if (!auth.isSignedIn) {
         auth.setSignInRequired(true);
       } else {
         // Post to new nugget
+        const nug = this.openNuggets.get(nuggetUid);
+        console.log('NUG', nug)
+        const apiResponse = await izzupApi.post(
+          '/nugget/'+nuggetUid,
+          nug
+        );
+
+        this.savedNuggets[apiResponse.data.uid] = this.openNuggets.get(nuggetUid);
+
+      }
+    },
+
+    async saveDraft(nuggetUid) {
+      // Require authentication
+
+      console.log(this.openNuggets)
+      console.log(nuggetUid)
+
+      if (!auth.isSignedIn) {
+        auth.setSignInRequired(true);
+      } else {
+        // Post to new nugget
+        const nug = this.openNuggets.get(nuggetUid);
+        console.log('NUG', nug)
         const apiResponse = await izzupApi.post(
           '/nugget',
-          this.localDrafts.get(nuggetId)
+          nug
         );
 
         const newNugget = {
           ...apiResponse.data,
-          ...this.localDrafts.get(nuggetId),
+          ...this.openNuggets.get(nuggetUid),
         };
 
-        this.nuggets.set(apiResponse.data.uid, newNugget);
+        this.savedNuggets[apiResponse.data.uid] = newNugget;
+        this.openNuggets.set(apiResponse.data.uid, newNugget);
 
-        this.localDrafts.delete(nuggetId);
-
-        this.router.push({name: 'nugget-editor', params: {nuggetId: apiResponse.data.uid}});
+        this.router.push({name: 'nugget-editor', params: {nuggetUid: apiResponse.data.uid}});
       }
     },
 

@@ -73,7 +73,7 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
-    path: '/nugget/:nuggetId',
+    path: '/nugget/:nuggetUid',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {

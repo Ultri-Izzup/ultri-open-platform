@@ -1,7 +1,7 @@
 <template>
   <q-page class="row justify-evenly">
     <div class="editor-container fit">
-      <NuggetEditor :nuggetId="draftId"></NuggetEditor>
+      <NuggetEditor :nuggetUid="draftId"></NuggetEditor>
     </div>
     <!--  -->
   </q-page>
@@ -11,8 +11,8 @@
 import { useI18n } from 'vue-i18n';
 
 import { useNuggetStore } from '../../../stores/nugget';
-
 const nuggetStore = useNuggetStore();
+
 const draftId = nuggetStore.addDraft('article');
 console.log(draftId)
 

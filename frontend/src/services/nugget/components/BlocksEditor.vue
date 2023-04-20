@@ -6,6 +6,9 @@
 
 <template>
   <div class="row col-12 q-pa-sm">
+
+    {{  nuggetId }}
+
     <div
       v-for="(block, ix) in nugget.blocks"
       :key="ix"
@@ -137,7 +140,9 @@ const props = defineProps({
   },
 });
 
-const nugget = nuggetStore.getNuggetById(props.nuggetId)
+const nugget = nuggetStore.getNuggetById(props.nuggetId);
+console.log('WTF', props.nuggetId)
+console.log('WTF', nuggetStore.nuggets)
 
 const comps = {
   HtmlBlock,
