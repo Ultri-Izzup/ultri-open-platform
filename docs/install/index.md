@@ -35,7 +35,7 @@ We also provide a guide for AWS using an API Gateway or an ALB, eithere using WA
 
 ## Installing the Frontend
 
-A Vue3 fronte3nd using Quasar is provided. It is a static web site and can be deployed to any static hosting service. Netlify is an option we highly recommend.
+A TypeScript Vue3 frontend using Quasar is provided. It is a static web site and can be deployed to any static hosting service. Netlify is an option we highly recommend.
 
 ### Building the User Interface
 
