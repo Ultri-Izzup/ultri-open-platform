@@ -50,7 +50,7 @@ The files will be in `./dist/spa, copy those to your hosting provider. You may n
 
 (Need screenshot and copyable text)
 
-You can use "$ quasar serve" command to create a web server, both for testing or production. Type "$ quasar serve -h" for parameters. Also, an npm script (usually named "start") can be added for deployment environments. If you're using Vue Router "history" mode, don't forget to specify the "--history" parameter: "$ quasar serve --history"
+You can use `$ quasar serve --history` command to create a web server, both for testing or production. Type `$ quasar serve -h` for parameters.
 
 
 
