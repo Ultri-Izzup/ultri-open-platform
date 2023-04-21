@@ -22,15 +22,15 @@ const NuggetService = (postgres) => {
     }
   };
 
-  const getNugget = async (memberUid, nuggetType) => {
+  const getNuggetAsMember = async (nuggetUid, memberUid) => {
     const client = await postgres.connect();
 
     try {
       const {
         rows,
-      } = await client.query('SELECT "nuggetUid","createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType" FROM izzup_api.get_member_nuggets_by_type($1, $2)', [
-        memberUid,
-        nuggetType,
+      } = await client.query('SELECT "nuggetUid","createdAt","updatedAt","pubAt","unPubAt","publicTitle","internalName","nuggetType", "blocks" FROM izzup_api.get_nugget_as_member($1, $2)', [
+        nuggetUid,
+        memberUid
       ]);
 
       /*
