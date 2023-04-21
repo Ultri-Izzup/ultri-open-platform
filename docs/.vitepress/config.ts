@@ -38,8 +38,8 @@ export default defineConfig({
           { text: 'Contribute', link: '/development/contribute' },
           { text: 'Swagger', link: '/development/swagger' },         
           { text: 'Local Development', link: '/development/local-dev-install' },
-          { text: 'Local Nugget Server Development', link: '/development/local-data-server-dev' },
-          { text: 'Local Frontend Development', link: '/development/local-frontend-dev' },
+          { text: 'Nugget Data Server Development', link: '/development/local-data-server-dev' },
+          { text: 'Frontend Development', link: '/development/local-frontend-dev' },
           { text: 'Custom Application Development', link: '/development/local-custom-app-dev' }
         ]
       },

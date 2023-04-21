@@ -3,13 +3,13 @@
 ## Create directory in mono repo.
 
 ```sh
-mkdir ./data-server
+mkdir ./nugget-server
 ```
 
 ## Create a Fastify app in the directory
 
 ```sh
-cd ./data-server
+cd ./nugget-server
 npm init
 ```
 Enter sensible data for now.
