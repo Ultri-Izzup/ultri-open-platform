@@ -1,6 +1,6 @@
 # Get Code
 
-To run locally or in the cloud you first need to get the code. You can for the repo, or create a new independent repo using ours as a template.
+To run locally or in the cloud you first need to get the code. You can fork the repo, or create a new independent repo using ours as a template.
 
 ## Fork
 

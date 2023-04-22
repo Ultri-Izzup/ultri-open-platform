@@ -476,11 +476,72 @@ CREATE TABLE izzup_api.account_role (
     name character varying(24) NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     permissions jsonb DEFAULT '{}'::jsonb NOT NULL,
-    account_id bigint NOT NULL
+    account_id bigint NOT NULL,
+    id bigint NOT NULL
 );
 
 
 ALTER TABLE izzup_api.account_role OWNER TO postgres;
+
+--
+-- Name: account_role_id_seq; Type: SEQUENCE; Schema: izzup_api; Owner: postgres
+--
+
+CREATE SEQUENCE izzup_api.account_role_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE izzup_api.account_role_id_seq OWNER TO postgres;
+
+--
+-- Name: account_role_id_seq; Type: SEQUENCE OWNED BY; Schema: izzup_api; Owner: postgres
+--
+
+ALTER SEQUENCE izzup_api.account_role_id_seq OWNED BY izzup_api.account_role.id;
+
+
+--
+-- Name: role; Type: TABLE; Schema: izzup_api; Owner: postgres
+--
+
+CREATE TABLE izzup_api.role (
+    uid uuid DEFAULT gen_random_uuid() NOT NULL,
+    name character varying(24) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    permissions jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+ALTER TABLE izzup_api.role OWNER TO postgres;
+
+--
+-- Name: all_perms; Type: VIEW; Schema: izzup_api; Owner: postgres
+--
+
+CREATE VIEW izzup_api.all_perms AS
+ SELECT a.name,
+    jsonb_object_agg(jsonb_each.key, jsonb_each.value) AS jsonb_object_agg
+   FROM (( SELECT a_1.id,
+            r.name,
+            r.permissions
+           FROM ((izzup_api.account a_1
+             JOIN izzup_api.account_member am ON ((am.account_id = a_1.id)))
+             JOIN izzup_api.role r ON (((r.name)::text = ANY (am.roles))))
+        UNION ALL
+         SELECT a_1.id,
+            ar.name,
+            ar.permissions
+           FROM (izzup_api.account a_1
+             JOIN izzup_api.account_role ar ON ((ar.account_id = a_1.id)))) a
+     CROSS JOIN LATERAL jsonb_each(a.permissions) jsonb_each(key, value))
+  GROUP BY a.id, a.name;
+
+
+ALTER TABLE izzup_api.all_perms OWNER TO postgres;
 
 --
 -- Name: block_type; Type: TABLE; Schema: izzup_api; Owner: izzup_api
@@ -575,20 +636,6 @@ ALTER TABLE izzup_api.member_id_seq OWNER TO izzup_api;
 
 ALTER SEQUENCE izzup_api.member_id_seq OWNED BY izzup_api.member.id;
 
-
---
--- Name: role; Type: TABLE; Schema: izzup_api; Owner: postgres
---
-
-CREATE TABLE izzup_api.role (
-    uid uuid DEFAULT gen_random_uuid() NOT NULL,
-    name character varying(24) NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    permissions jsonb DEFAULT '{}'::jsonb NOT NULL
-);
-
-
-ALTER TABLE izzup_api.role OWNER TO postgres;
 
 --
 -- Name: member_permissions; Type: VIEW; Schema: izzup_api; Owner: postgres
@@ -751,6 +798,35 @@ CREATE VIEW izzup_api.old_member AS
 ALTER TABLE izzup_api.old_member OWNER TO izzup_api;
 
 --
+-- Name: passwordless_member_accounts; Type: VIEW; Schema: izzup_api; Owner: postgres
+--
+
+CREATE VIEW izzup_api.passwordless_member_accounts AS
+ SELECT m.id AS "memberId",
+    pu.email,
+    m.uid AS "memberUid",
+    m.created_at AS "memberCreatedAt",
+    a.id AS "accountId",
+    a.uid AS "accountUid",
+    a.personal AS "personalAccount",
+    a.created_at AS "accountCreatedAt",
+    a.name AS "accountName",
+    am.roles AS "accountRoles",
+    ag.name AS "groupName",
+    ag.roles AS "groupRoles",
+    agm.created_at AS "groupMembershipCreatedAt",
+    pu.phone_number
+   FROM (((((izzup_api.member m
+     JOIN izzup_api.account_member am ON ((am.member_id = m.id)))
+     JOIN izzup_api.account a ON ((a.id = am.account_id)))
+     JOIN ultri_auth.passwordless_users pu ON (((pu.user_id)::text = (m.uid)::text)))
+     LEFT JOIN izzup_api.account_group_member agm ON ((agm.member_id = m.id)))
+     LEFT JOIN izzup_api.account_group ag ON ((ag.id = agm.account_group_id)));
+
+
+ALTER TABLE izzup_api.passwordless_member_accounts OWNER TO postgres;
+
+--
 -- Name: response; Type: TABLE; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -839,6 +915,13 @@ ALTER TABLE ONLY izzup_api.account_group ALTER COLUMN id SET DEFAULT nextval('iz
 
 
 --
+-- Name: account_role id; Type: DEFAULT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.account_role ALTER COLUMN id SET DEFAULT nextval('izzup_api.account_role_id_seq'::regclass);
+
+
+--
 -- Name: block_type id; Type: DEFAULT; Schema: izzup_api; Owner: izzup_api
 --
 
@@ -909,27 +992,31 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 24	a0e1d821-f86e-48f2-8a3a-aa915bac2cb0	2023-03-24 03:12:18.122234	Izzup Member Account for c8885655-74e3-4594-ad69-2419a2129458	t
 28	17792eb1-eb48-4044-a85f-edff33b49dfe	2023-03-26 19:39:25.28476	My first  account	t
 29	fa06cc56-4665-4259-9202-fe4ad473a8a8	2023-03-26 19:39:35.253513	My first  account	t
-30	d7db7fcb-4a77-4169-9823-e38958023528	2023-03-26 20:28:41.031688	My shared account	f
-31	af8db92e-aaac-4141-bfb4-4b6487c8a1a7	2023-03-26 20:28:46.285516	My shared account	f
-32	bbcc7919-956a-4e7a-8db1-7b5770acaa10	2023-03-28 04:42:34.097693	My shared account	f
-33	7513acb8-41cf-4a0f-b7f6-04e9e0013ed1	2023-03-30 04:35:37.196831	My shared account	f
-34	bf676460-7d92-41e4-a954-a2f18f291d37	2023-03-30 06:11:15.637939	My shared account	f
 35	96be72ff-5b99-4525-a5c3-2fc9ec6f365a	2023-03-31 05:14:52.328446	Izzup Member Account for 386319aa-abdf-42d6-a53b-ee2cc7511a07	t
-36	35064555-8fab-4a56-8ec0-79f0f63774bd	2023-04-08 06:19:30.216301	My shared account	f
 39	c407cd4b-3c86-45a2-91e9-151f41e4fa0a	2023-04-14 01:28:14.831104	Member Account for 3	t
 40	62a9f48e-90ee-4268-9b2c-647681f90d07	2023-04-14 01:30:37.994139	Member Account for 4	t
 41	d2c7e06f-5f3c-4b2d-b066-e192cde4e3fc	2023-04-14 01:33:26.246145	Member Account for	t
 42	164ece7e-a8aa-42a7-a672-75bfbbde4a87	2023-04-14 01:35:27.592473	Member Account for 6	t
 43	78a60a6b-836b-4b8e-be70-9424072d14ee	2023-04-14 01:39:14.597227	Member Account for 7	t
-47	3f878978-adbf-4e06-945f-d7bf8d423f7f	2023-04-14 02:38:19.96892	My shared account	f
 48	f72d574c-85b2-47f7-b244-4b484f366a7e	2023-04-14 02:54:32.176074	Member Account for 8	t
 49	27f84f6a-ceae-4f9d-9a7f-2b0c8c58e3e4	2023-04-14 03:40:56.893315	Member Account for 9	t
 50	fc8ff7f7-9da1-47c4-8dd3-f14a77aa76fd	2023-04-14 06:03:08.037466	Member Account for 10	t
-51	78707037-a5cb-400f-bf5d-6125e644c71b	2023-04-14 06:58:55.731716	My shared account	f
 52	8e71d3f8-3ef7-4a0a-bad0-a5512c548a21	2023-04-14 07:39:12.207195	Member Account for 11	t
-53	b6d5e2b2-1d55-4eac-98fe-a80d14284f68	2023-04-14 07:42:40.584335	My shared account	f
 54	3facaaad-57b8-4e9f-bf17-61f9573a4b54	2023-04-14 21:45:40.71784	Member Account for 12	t
-55	8f084b5f-1e5d-491b-bb1f-38ca97218d1a	2023-04-14 21:46:29.675755	My new shared account	f
+56	5d1d58e5-00ff-4a2b-a057-fe88603a232e	2023-04-16 22:29:12.986608	Member Account for 13	t
+57	d96769d8-68c5-484d-9a49-2573c2e602bb	2023-04-20 05:53:32.017511	Member Account for 14	t
+30	d7db7fcb-4a77-4169-9823-e38958023528	2023-03-26 20:28:41.031688	My shared account A	f
+31	af8db92e-aaac-4141-bfb4-4b6487c8a1a7	2023-03-26 20:28:46.285516	My shared account B	f
+32	bbcc7919-956a-4e7a-8db1-7b5770acaa10	2023-03-28 04:42:34.097693	My shared account C	f
+33	7513acb8-41cf-4a0f-b7f6-04e9e0013ed1	2023-03-30 04:35:37.196831	My shared account D	f
+34	bf676460-7d92-41e4-a954-a2f18f291d37	2023-03-30 06:11:15.637939	My shared account E	f
+36	35064555-8fab-4a56-8ec0-79f0f63774bd	2023-04-08 06:19:30.216301	My shared account F	f
+47	3f878978-adbf-4e06-945f-d7bf8d423f7f	2023-04-14 02:38:19.96892	My shared account G	f
+51	78707037-a5cb-400f-bf5d-6125e644c71b	2023-04-14 06:58:55.731716	My shared account H	f
+53	b6d5e2b2-1d55-4eac-98fe-a80d14284f68	2023-04-14 07:42:40.584335	My shared account I	f
+55	8f084b5f-1e5d-491b-bb1f-38ca97218d1a	2023-04-14 21:46:29.675755	My new shared account J	f
+58	5638011d-5b27-41d2-86e7-2ab6c6a759de	2023-04-20 06:11:28.560366	My new shared account K	f
+59	c88f7e7b-c8a1-45fe-9544-7e56d5103721	2023-04-20 06:13:39.189237	My new shared account L	f
 \.
 
 
@@ -938,6 +1025,7 @@ COPY izzup_api.account (id, uid, created_at, name, personal) FROM stdin;
 --
 
 COPY izzup_api.account_group (id, uid, account_id, created_at, name, roles) FROM stdin;
+1	c4a7948a-4c22-42da-aa5a-bba2e32eae91	53	2023-04-21 04:42:30.087337	devs	{developer}
 \.
 
 
@@ -946,6 +1034,7 @@ COPY izzup_api.account_group (id, uid, account_id, created_at, name, roles) FROM
 --
 
 COPY izzup_api.account_group_member (account_group_id, member_id, created_at) FROM stdin;
+1	4	2023-04-21 04:54:32.96003
 \.
 
 
@@ -965,6 +1054,11 @@ COPY izzup_api.account_member (account_id, member_id, created_at, updated_at, ro
 53	11	2023-04-14 07:42:40.584335	\N	{owner}
 54	12	2023-04-14 21:45:40.71784	\N	{owner}
 55	12	2023-04-14 21:46:29.675755	\N	{owner}
+56	13	2023-04-16 22:29:12.986608	\N	{owner}
+57	14	2023-04-20 05:53:32.017511	\N	{owner}
+58	14	2023-04-20 06:11:28.560366	\N	{owner}
+59	12	2023-04-20 06:13:39.189237	\N	{owner}
+55	14	2023-04-20 06:23:42.856705	\N	{editor,billing}
 \.
 
 
@@ -980,7 +1074,9 @@ COPY izzup_api.account_nugget_type (uid, name, created_at, account_id) FROM stdi
 -- Data for Name: account_role; Type: TABLE DATA; Schema: izzup_api; Owner: postgres
 --
 
-COPY izzup_api.account_role (uid, name, created_at, permissions, account_id) FROM stdin;
+COPY izzup_api.account_role (uid, name, created_at, permissions, account_id, id) FROM stdin;
+1d98c451-fff5-40f3-a12e-03261011afec	billing	2023-04-20 19:42:43.480576	{"nuggets": {"article": ["r", "u"], "invoice": ["c", "r", "u", "d", "pub"]}}	55	1
+df69234d-558d-4caa-af90-a1ab7def40dc	developer	2023-04-21 04:44:26.220731	{"nuggets": {"article": ["c", "r", "u", "d"]}}	53	2
 \.
 
 
@@ -1007,6 +1103,8 @@ COPY izzup_api.member (id, uid, created_at) FROM stdin;
 10	21d43421-5217-47ed-b58a-809ee035c34b	2023-04-14 06:03:08
 11	bc4a1662-f92a-455d-a231-d9b651247b4d	2023-04-14 07:39:12
 12	8ee246e8-9f21-4f02-a7a5-2648a2420f76	2023-04-14 21:45:40
+13	fb7c1281-1a35-4dfc-8139-bcccc62e750d	2023-04-16 22:29:12
+14	753d4c7f-8f73-4f9c-adb2-e2b9f917903d	2023-04-20 05:53:32
 \.
 
 
@@ -1038,6 +1136,37 @@ COPY izzup_api.nugget (id, uid, created_at, updated_at, pub_at, un_pub_at, publi
 64	f5bbceb7-bc0d-4094-bccd-d7078aad63be	2023-04-14 07:39:24.39632	\N	\N	\N	My more newester Title	My project	52	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
 65	eadbe48b-dd95-4758-88fa-dd945ed5da2f	2023-04-14 21:46:00.188388	\N	\N	\N	My very latest Title	My project	54	\N	article
 66	50e14484-b056-41d6-b47f-8f787de336bd	2023-04-14 21:46:04.52791	\N	\N	\N	My super latest Title	My project	54	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+67	efe9297a-c8f8-4848-b7c8-01667747d097	2023-04-18 07:06:44.029116	\N	\N	\N	My Title	\N	54	[{"id": "2JMKdtNkEu_S17-WuFEjU", "data": "My body", "type": "richText"}]	article
+68	1e73c16b-16c5-4216-87dc-20eb9106a978	2023-04-18 07:07:40.226366	\N	\N	\N	\N	\N	54	[]	article
+69	e5bde649-26c1-4446-97bc-a97b3238d8c8	2023-04-18 07:14:04.698191	\N	\N	\N	New Title	\N	54	[{"id": "W76vU5EMxyvNQLGVi4p3d", "data": "New Body", "type": "richText"}]	article
+70	b6000c0b-8cc7-4af3-a6e2-0c1274067de4	2023-04-18 07:23:34.465458	\N	\N	\N	Next title	\N	54	[{"id": "zxriUhWirLGe15iuP0hdV", "data": "Body body boot", "type": "richText"}]	article
+71	efc74eaf-5fb5-4aaa-8375-519deadcd407	2023-04-18 07:25:55.151359	\N	\N	\N	dfvfdvd	\N	54	[]	article
+72	f9b00030-6ee9-447e-9bdb-df860697e886	2023-04-18 08:55:22.699959	\N	\N	\N	fgbgfdgfdgf	\N	54	[]	article
+73	790039cc-4a63-47b6-87b7-9bcd75bb914b	2023-04-18 08:56:06.47247	\N	\N	\N	gfbgfbgfbgfbfgb	\N	54	[]	article
+74	71358732-c2f9-48da-bebe-e8b13f4d2385	2023-04-18 08:56:52.930824	\N	\N	\N	Fixed	\N	54	[]	article
+75	c5608fc8-e72f-484b-b636-0bb5f46d7883	2023-04-18 09:02:29.517575	\N	\N	\N	dfvfddfvdfvdfv	\N	54	[]	article
+76	0c1a9af2-4408-4552-84af-f4ce1f8001fb	2023-04-18 09:03:17.06878	\N	\N	\N	refgregvrevbev	\N	54	[]	article
+77	2d07b1cd-8bbe-42f0-9710-b6ed018ad3fb	2023-04-18 09:03:38.568835	\N	\N	\N	regevevrevrev	\N	54	[]	article
+78	18162f84-01c4-4b03-8311-26bbe799b178	2023-04-19 04:48:37.596457	\N	\N	\N	Tuesday Article	\N	54	[{"id": "QNcTVAuGr0w90Wq_wCj5y", "data": "Tuesday body", "type": "richText"}]	article
+79	db0f959b-ad8b-47f0-8e1f-c3e6cdadfaaf	2023-04-19 04:50:31.507941	\N	\N	\N	hgnhgnghng	\N	54	[]	article
+80	027103cd-0f91-49e8-a69b-52f110af3032	2023-04-19 04:53:23.583253	\N	\N	\N	fgbgfbfgbgfb	\N	54	[]	article
+81	4be42622-8dc8-4f3b-bc1e-cf2ff1b76da4	2023-04-19 05:00:43.175837	\N	\N	\N	My ultra super latest Title	My project	54	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+82	3175e2e5-a946-410b-9728-5b0fd6b6495a	2023-04-19 05:03:58.324237	\N	\N	\N	hgnhgnghnn	\N	54	[]	article
+83	aee39cbe-1074-471c-8f71-9a8047bc80cc	2023-04-19 05:05:40.32178	\N	\N	\N	;l/lk/;l/l;/l;/	\N	54	[{"id": "wwxBdHGDEi4WV9Cv_V8MI", "data": ";l/;l/l;", "type": "richText"}]	article
+84	52454aa3-594c-45c7-9138-393dbc78633b	2023-04-19 06:32:16.285223	\N	\N	\N	rtgrtgtrgtrgrgr	\N	54	[]	article
+85	5898e104-b38f-4282-9088-46380bc1d664	2023-04-19 06:33:15.62123	\N	\N	\N	tyytnytnntyn	\N	54	[]	article
+86	ce8b1e8a-f5b1-43bd-b96e-fc7a0d9faa62	2023-04-19 06:33:24.494586	\N	\N	\N	ytjnytnytnytntynj	\N	54	[]	article
+87	f155798b-405b-4456-a506-a4ab943251dd	2023-04-19 19:49:16.264771	\N	\N	\N	fgtbgfbfdscdscsdcscs	\N	54	[{"id": "cY24WZ97MrhpglOQZMxma", "data": "cdscdscscdscs", "type": "richText"}]	article
+88	9e6c72e1-d362-4b93-a0a5-22f52f9e2e51	2023-04-19 19:55:48.734192	\N	\N	\N	wefwfwefwefwfwefw	\N	54	[]	article
+89	164459e7-5a48-4a63-b597-7e2c748ffbbe	2023-04-19 19:57:40.224966	\N	\N	\N	New New	\N	54	[{"id": "B-JOFPcbAzJSkdi1nOlWg", "data": "rgregrege&nbsp; er g er g er g er g er&nbsp;", "type": "richText"}, {"id": "WX3kiu_xSnbGYaJd-m-_C", "data": {"fit": "scale-down", "url": "vcfdb ", "font": "Arial", "ratio": "1", "altText": "", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}]	article
+90	90075371-8b5c-4431-be84-547d0fc15923	2023-04-19 20:27:56.541904	\N	\N	\N	\N	\N	54	[]	article
+91	1938957a-2c36-40b5-b7a0-73f8726f77de	2023-04-19 23:12:01.581289	\N	\N	\N	ytjytnj ytjtnt ytnmtjty	\N	54	[]	article
+92	47aae46b-9bb5-4267-b673-86c6fd5148c4	2023-04-19 23:16:48.558064	\N	\N	\N	rregrege  erg re g re g er g er	\N	54	[]	article
+93	03509bc6-8fff-46bf-90df-0f4de387387b	2023-04-20 00:45:46.830501	\N	\N	\N	rregrege  erg re g re g e r g er fgbgtfrbfgbgfbfgbf	\N	54	[]	article
+94	e523e9f6-a9ef-4c72-896b-bdee92167cf8	2023-04-20 01:28:54.867067	\N	\N	\N	My ultra super latest Title	My project	54	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+95	fb3e005e-3161-4c45-80eb-d8854f1801c7	2023-04-20 01:29:41.561375	\N	\N	\N	My ultra super latest Title	My project	54	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+96	1d3c3457-cd28-442f-a30b-4bcf1b207944	2023-04-20 01:30:34.375483	\N	\N	\N	My ultra super latest Title	My project	54	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
+97	581dd7c1-90bd-41cc-874a-af4a442a9a13	2023-04-20 01:33:41.748707	\N	\N	\N	My ultra super latest Title	My project	54	[{"id": "at4-DN8Xc71G_LUaUldqc", "data": "<font size=\\"6\\">My big Text block.</font><div><br></div><div>A new paragraph.</div><div><br></div><div><br></div>", "type": "richText"}, {"id": "yEzYlzv6zCyzZWBKDbqye", "data": {"fit": "fill", "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgJVeM7lsGf2dRbEdg3JAzDmFt21nzzjLyoOBnLeH5&s", "font": "Arial", "ratio": "1", "altText": "My alternate text", "fontSize": "xxx-large", "fontColor": "#ffffff", "fontStyle": "normal", "fontWeight": "text-weight-regular", "captionText": "Overlay text", "imageSource": "url", "captionPosition": "absolute-full text-subtitle2 flex flex-center"}, "type": "image"}, {"id": "iuZph-jZp2OWzLTUGUrXo", "type": "basicSeparator"}]	article
 \.
 
 
@@ -1170,12 +1299,12 @@ COPY izzup_api.response (id, uid, created_at, comment_id, response_id, account_i
 --
 
 COPY izzup_api.role (uid, name, created_at, permissions) FROM stdin;
-00dae312-18b4-486f-820b-acc09f5d1628	social	2023-04-13 06:36:01.322926	{"nuggets": {"response": ["c", "r", "u", "d", "pub"]}}
 4ae37c11-9346-4b48-8878-32b4c1808840	editor	2023-04-13 06:27:50.772132	{"nuggets": {"article": ["c", "r", "u", "d", "pub"]}}
 7f0b5144-7c9d-465c-8b55-fc549b1f43d8	support	2023-04-13 06:38:31.456076	{"nuggets": {"article": ["r"], "invoice": ["r"], "response": ["r"]}}
 977d1068-a8e7-4fd5-9943-2cb64b8b3c3b	billing	2023-04-13 06:36:01.322926	{"nuggets": {"invoice": ["r"]}}
-df7e929b-fa83-4bb2-b82c-389913476529	preview	2023-04-13 06:36:01.322926	{"nuggets": {"article": ["r"]}}
-baf4d3c1-8252-4f04-8680-c5e158476901	owner	2023-04-13 06:27:50.772132	{"nuggets": "all"}
+00dae312-18b4-486f-820b-acc09f5d1628	social	2023-04-13 06:36:01.322926	{"nuggets": {"comment": ["c", "r", "u", "d", "pub"], "response": ["c", "r", "u", "d", "pub"]}}
+baf4d3c1-8252-4f04-8680-c5e158476901	owner	2023-04-13 06:27:50.772132	{"all": "all"}
+df7e929b-fa83-4bb2-b82c-389913476529	preview	2023-04-13 06:36:01.322926	{"nuggets": {"all": ["r"]}}
 \.
 
 
@@ -1202,14 +1331,21 @@ COPY izzup_api.service (id, name, url, created_at, auth_required) FROM stdin;
 -- Name: account_group_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: postgres
 --
 
-SELECT pg_catalog.setval('izzup_api.account_group_id_seq', 1, false);
+SELECT pg_catalog.setval('izzup_api.account_group_id_seq', 1, true);
 
 
 --
 -- Name: account_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.account_id_seq', 55, true);
+SELECT pg_catalog.setval('izzup_api.account_id_seq', 59, true);
+
+
+--
+-- Name: account_role_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: postgres
+--
+
+SELECT pg_catalog.setval('izzup_api.account_role_id_seq', 2, true);
 
 
 --
@@ -1223,7 +1359,7 @@ SELECT pg_catalog.setval('izzup_api.block_types_id_seq', 1, false);
 -- Name: member_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.member_id_seq', 12, true);
+SELECT pg_catalog.setval('izzup_api.member_id_seq', 14, true);
 
 
 --
@@ -1237,7 +1373,7 @@ SELECT pg_catalog.setval('izzup_api.nugget_comment_id_seq', 1, false);
 -- Name: nugget_id_seq; Type: SEQUENCE SET; Schema: izzup_api; Owner: izzup_api
 --
 
-SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 66, true);
+SELECT pg_catalog.setval('izzup_api.nugget_id_seq', 97, true);
 
 
 --
@@ -1292,6 +1428,14 @@ ALTER TABLE ONLY izzup_api.account_member
 
 ALTER TABLE ONLY izzup_api.account
     ADD CONSTRAINT account_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: account_role account_role_pkey; Type: CONSTRAINT; Schema: izzup_api; Owner: postgres
+--
+
+ALTER TABLE ONLY izzup_api.account_role
+    ADD CONSTRAINT account_role_pkey PRIMARY KEY (id);
 
 
 --

@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Edit files in `./data-server`, live reload is enabled for local development.
+Edit files in `./nugget-server`, live reload is enabled for local development.
 
 The server is available at <a href="http://localhost:3001" target="_blank" rel="noreferrer">http://localhost:3001</a>
 

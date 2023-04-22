@@ -38,8 +38,8 @@ export default defineConfig({
           { text: 'Contribute', link: '/development/contribute' },
           { text: 'Swagger', link: '/development/swagger' },         
           { text: 'Local Development', link: '/development/local-dev-install' },
-          { text: 'Local Nugget Server Development', link: '/development/local-data-server-dev' },
-          { text: 'Local Frontend Development', link: '/development/local-frontend-dev' },
+          { text: 'Nugget Data Server Development', link: '/development/local-data-server-dev' },
+          { text: 'Frontend Development', link: '/development/local-frontend-dev' },
           { text: 'Custom Application Development', link: '/development/local-custom-app-dev' }
         ]
       },
@@ -65,7 +65,8 @@ export default defineConfig({
     socialLinks: [
       { icon: 'github', link: 'https://github.com/ultri-izzup/ultri-open-platform' },
       { icon: 'facebook', link: 'https://www.facebook.com/OpenSourceBike/' },
-      { icon: 'linkedin', link: 'https://www.linkedin.com/company/open-source-bike' }
+      { icon: 'linkedin', link: 'https://www.linkedin.com/company/open-source-bike' },
+      { icon: 'discord', link: 'https://discord.gg/zBpdpSrH' }
     ]
   }
 })

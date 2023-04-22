@@ -3,14 +3,14 @@
 ## Create directory in mono repo.
 
 ```sh
-mkdir ./data-server
+mkdir ./nugget-server
 ```
 
 ## Create a Fastify app in the directory
 
 ```sh
-cd ./data-server
-npm init
+cd ./nugget-server
+yarn init
 ```
 Enter sensible data for now.
 
@@ -31,7 +31,32 @@ Enter sensible data for now.
 Add base Fastify/Typescript modules.
 
 ```sh
-npm add fastify fastify-plugin @fastify/autoload 
-npm add -D typescript @types/node nodemon esbuild
+yarn add fastify fastify-plugin @fastify/autoload 
+yarn add -D typescript @types/node nodemon esbuild
 ```
 
+
+Install Fastify Postgres w/ TypeScript support
+
+```sh
+yarn add pg @fastify/postgres
+yarn add -D typescript @types/pg
+```
+
+Install Fastify Redis
+
+```sh
+yarn add @fastify/redis
+```
+
+Install Fastify helpers
+
+```sh
+yarn add @fastify/cors @fastify/env @fastify/formbody
+```
+
+Install SuperTokens Node
+
+```sh
+yarn add supertokens-node
+```
