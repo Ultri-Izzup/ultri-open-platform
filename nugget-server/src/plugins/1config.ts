@@ -32,7 +32,7 @@ async function configPlugin(server, options, done) {
     properties: {
       HTTP_PORT: {
         type: "number",
-        default: 3001,
+        default: 3005,
       },
       HTTP_HOST: {
         type: "string",
@@ -128,3 +128,4 @@ async function configPlugin(server, options, done) {
 }
 
 export default fastifyPlugin(configPlugin);
+ 
