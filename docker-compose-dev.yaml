@@ -79,7 +79,7 @@ services:
   nuggets:
     # image: ultri/open-platform-api:latest
     image: nugget-server
-    command: ["npm", "run", "dev"]
+    command: ["yarn", "run", "dev"]
     # command: ["npm", "run", "dev:debug"]
     container_name: ultri-nugget-server
     ports:
@@ -88,11 +88,10 @@ services:
     networks:
       - ultri-net
     volumes:
-      - "./api/config:/usr/src/app/config"
-      - "./api/plugins:/usr/src/app/plugins"
-      - "./api/routes:/usr/src/app/routes"
-      - "./api/services:/usr/src/app/services"
-      - "./api/app.js:/usr/src/app/app.js"
+      - "./nugget-server/src/plugins:/usr/src/app/plugins"
+      - "./nugget-server/src/routes:/usr/src/app/routes"
+      - "./nugget-server/src/services:/usr/src/app/services"
+      - "./nugget-server/src/app.js:/usr/src/app/app.js"
     depends_on:
       - redis
       - postgres
