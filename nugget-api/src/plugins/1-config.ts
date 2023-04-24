@@ -64,6 +64,27 @@ async function configPlugin(server: any, options: any, done: any) {
       CORS_ORIGIN_URL: {
         type: "string",
       },
+      SMTP_HOST: {
+        type: "string",
+      },
+      SMTP_USER: {
+        type: "string",
+      },
+      SMTP_PASSWORD: {
+        type: "string",
+      },
+      SMTP_PORT: {
+        type: "string",
+      },
+      SMTP_FROM: {
+        type: "string",
+      },
+      SMTP_EMAIL: {
+        type: "string",
+      },
+      SMTP_SECURE: {
+        type: "boolean",
+      },
     },
   };
 

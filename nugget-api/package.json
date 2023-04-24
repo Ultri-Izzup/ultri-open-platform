@@ -7,12 +7,12 @@
     "start": "npm run build && node build",
     "format": "prettier --write src",
     "lint": "prettier --check src && eslint --ignore-path .gitignore .",
-    "ci": "pnpm format && pnpm lint",
+    "ci": "npm format && npm lint",
     "release:major": "standard-version --no-verify --release-as major",
     "release:minor": "standard-version --no-verify --release-as minor",
     "release:patch": "standard-version --no-verify --release-as patch"
   },
-  "author": "David Peng",
+  "author": "Brian Winkers",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "18.15.10",

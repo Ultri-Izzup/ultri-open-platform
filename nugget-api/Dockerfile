@@ -20,4 +20,4 @@ COPY . .
 # USER node
 
 # Start command
-CMD [ "node", "./build/index.js" ]
+# CMD [ "node", "./build/index.js" ]

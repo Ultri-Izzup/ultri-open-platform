@@ -1,0 +1,121 @@
+services:
+  postgres:
+    container_name: ultri-pg
+    hostname: "postgres"
+    image: "postgres:14"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    ports:
+      - "5432:5432"
+    restart: always
+    env_file: .env
+    networks:
+      - ultri-net
+    volumes:
+      - pg-data:/var/lib/postgres/data
+      - ./postgres:/docker-entrypoint-initdb.d/
+
+  redis:
+    image: redis:7.0.7
+    container_name: ultri-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - ultri-net
+    # command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis:/data
+      
+  gateway:
+    image: ultri/open-platform-gateway:latest
+    container_name: ultri-gateway
+    restart: on-failure
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: ".env"
+    networks:
+      - ultri-net
+    volumes:
+      - "./gateway/config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
+      - "./gateway/config/account.key:/etc/openresty/account.key"
+      - "./gateway/certs/default-service.key:/etc/openresty/default.key"
+      - "./gateway/certs/default-service.pem:/etc/openresty/default.pem"
+      - "./gateway/html:/usr/local/openresty/nginx/html"
+      - "./logs/gateway:/usr/local/openresty/nginx/logs"
+    depends_on:
+      - redis
+      - ultri-auth
+      - nuggets
+
+  nuggets:
+    # image: ultri/open-platform-api:latest
+    image: nugget-api
+    command: ["npm", "run", "dev"]
+    # command: ["npm", "run", "dev:debug"]
+    container_name: ultri-nugget-server
+    ports:
+      - "3005:3005"
+    env_file: ".env"
+    networks:
+      - ultri-net
+    volumes:
+      - "./nugget-api/src/plugins:/usr/src/app/plugins"
+      - "./nugget-api/src/routes:/usr/src/app/routes"
+      - "./nugget-api/src/index.ts:/usr/src/app/index.ts"
+    depends_on:
+      - redis
+      - postgres
+
+  ultri-auth:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:4.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 3567:3567
+    container_name: ultri-auth
+    env_file: ".env"
+    environment: 
+      - POSTGRESQL_TABLE_SCHEMA=ultri_auth
+    networks:
+      - ultri-net
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/0.0.0.0/3567 && echo -e "GET /hello HTTP/1.1\r\nhost: 0.0.0.0:3567\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "Hello"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    restart: always
+    env_file: .env
+    networks:
+      - ultri-net
+    ports:
+      # Change the number before : to the port the web interface should be accessible on
+      - '5000:80'
+      # Change the number before : to the port the SMTP and IMAP server should be accessible on
+      - '25:25'
+      - '143:143'
+    volumes:
+      # This is where smtp4dev stores the database..
+        - smtp4dev-data:/smtp4dev
+
+
+volumes:
+  smtp4dev-data: {}
+  pg-data: {}
+  redis: {}
+
+networks:
+  ultri-net:
+    external: false
+    driver: bridge

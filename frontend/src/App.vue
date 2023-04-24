@@ -34,7 +34,7 @@ router.beforeEach(async (to, from) => {
 
 SuperTokens.init({
   appInfo: {
-    apiDomain: 'http://localhost:3001',
+    apiDomain: 'http://localhost:3005',
     // apiDomain: 'https://auth.local.ultri.com',
     apiBasePath: '/auth',
     appName: 'Izzup',
