@@ -1,0 +1,60 @@
+{
+	"info": {
+		"_postman_id": "79479494-a581-4c7c-9981-0b7cc14291e6",
+		"name": "Nugget Server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27760"
+	},
+	"item": [
+		{
+			"name": "Server is reachable",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{nuggetServerUrl}}",
+					"host": [
+						"{{nuggetServerUrl}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "V1 Health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{nuggetServerUrl}}/v1/health",
+					"host": [
+						"{{nuggetServerUrl}}"
+					],
+					"path": [
+						"v1",
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "V2 Health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{nuggetServerUrl}}/v1/health",
+					"host": [
+						"{{nuggetServerUrl}}"
+					],
+					"path": [
+						"v1",
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
