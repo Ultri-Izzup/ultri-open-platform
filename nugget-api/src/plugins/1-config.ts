@@ -1,5 +1,5 @@
 import fastifyEnv from "@fastify/env";
-import fastifyPlugin from "fastify-plugin"; 
+import fastifyPlugin from "fastify-plugin";
 
 async function configPlugin(server: any, options: any, done: any) {
   const schema = {
@@ -8,7 +8,6 @@ async function configPlugin(server: any, options: any, done: any) {
       "HTTP_PORT",
       "SUPERTOKENS_CONNECTION_URI",
       "SUPERTOKENS_API_KEY",
-      "ULTRI_SUPERTOKENS_DASHBOARD_API_KEY",
       "SUPERTOKENS_APPNAME",
       "SUPERTOKENS_API_DOMAIN",
       "SUPERTOKENS_API_BASE_PATH",
@@ -19,15 +18,6 @@ async function configPlugin(server: any, options: any, done: any) {
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_ID",
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_SECRET",
       "CORS_ORIGIN_URL",
-      "REDIS_URI",
-      "POSTGRES_URI",
-      "SMTP_HOST",
-      "SMTP_USER",
-      "SMTP_PASSWORD",
-      "SMTP_PORT",
-      "SMTP_FROM",
-      "SMTP_EMAIL",
-      "SMTP_SECURE"
     ],
     properties: {
       HTTP_PORT: {
@@ -42,9 +32,6 @@ async function configPlugin(server: any, options: any, done: any) {
         type: "string",
       },
       SUPERTOKENS_API_KEY: {
-        type: "string",
-      },
-      ULTRI_SUPERTOKENS_DASHBOARD_API_KEY: {
         type: "string",
       },
       SUPERTOKENS_APPNAME: {
@@ -77,34 +64,6 @@ async function configPlugin(server: any, options: any, done: any) {
       CORS_ORIGIN_URL: {
         type: "string",
       },
-      REDIS_URI: {
-        type: "string"
-      },
-      POSTGRES_URI: {
-        type: "string"
-      },
-      SMTP_HOST: {
-        type: "string"
-      },
-      SMTP_USER: {
-        type: "string"
-      },
-      SMTP_PASSWORD: {
-        type: "string"
-      },
-      SMTP_PORT: {
-        type: "string"
-      },
-      SMTP_FROM: {
-        type: "string"
-      },
-      SMTP_EMAIL: {
-        type: "string"
-      },
-      SMTP_SECURE: {
-        type: "boolean"
-      }
-
     },
   };
 

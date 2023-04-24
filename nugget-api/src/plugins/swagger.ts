@@ -6,13 +6,13 @@ export default fp(async (fastify) => {
   fastify.register(swagger, {
     openapi: {
       info: {
-        title: 'Nugget Server',
-        description: 'Use Nuggets to store and relate your data.',
+        title: 'Fastify REST API',
+        description: 'Use JSON Schema & TypeScript for better DX',
         version: '0.1.0'
       },
       servers: [
         {
-          url: 'http://127.0.0.1:3005'
+          url: 'http://localhost'
         }
       ]
     },
