@@ -68,6 +68,9 @@ services:
       - "./nugget-api/src/plugins:/usr/src/app/plugins"
       - "./nugget-api/src/routes:/usr/src/app/routes"
       - "./nugget-api/src/index.ts:/usr/src/app/index.ts"
+      - "./nugget-api/build/plugins:/usr/src/app/plugins"
+      - "./nugget-api/build/routes:/usr/src/app/routes"
+      - "./nugget-api/build/index.js:/usr/src/app/index.js"
     depends_on:
       - redis
       - postgres
