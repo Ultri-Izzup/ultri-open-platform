@@ -66,6 +66,16 @@ export const accountEditGroupSchema = {
   required: []
 } as const
 
+export const accountEditGroupMemberSchema = {
+  $id: 'accountGroupEdit',
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    roles: { type: 'array', items: { type: 'string' }}
+  },
+  required: []
+} as const
+
 // Not found Schema
 export const accountNotFoundSchema = {
   $id: 'accountNotFound',
@@ -157,7 +167,7 @@ export const postAccountsSchema: FastifySchema = {
 }
 
 export const postAccountRoleSchema: FastifySchema = {
-  tags: ['Roles'],
+  tags: ['Account Roles'],
   description: 'Create a new account role',
   body: accountEditRoleSchema,
   response: {
@@ -175,12 +185,30 @@ export const postAccountRoleSchema: FastifySchema = {
 }
 
 export const postAccountGroupSchema: FastifySchema = {
-  tags: ['Groups'],
+  tags: ['Account Groups'],
   description: 'Create a new account group',
   body: accountEditGroupSchema,
   response: {
     201: {
       description: 'The account role was created',
+      headers: {
+        Location: {
+          type: 'string',
+          description: 'URL of the new resource'
+        }
+      },
+      ...accountGroupSchema
+    }
+  }
+}
+
+export const postAccountGroupMemberSchema: FastifySchema = {
+  tags: ['Account Groups'],
+  description: 'Add a member to a group',
+  body: accountEditGroupMemberSchema,
+  response: {
+    201: {
+      description: 'The member was added to the group',
       headers: {
         Location: {
           type: 'string',
@@ -212,7 +240,7 @@ export const putAccountsSchema: FastifySchema = {
 }
 
 export const putAccountRoleSchema: FastifySchema = {
-  tags: ['Roles'],
+  tags: ['Account Roles'],
   description: 'Update an account role',
   params: paramsSchema,
   body: accountEditRoleSchema,
@@ -229,7 +257,7 @@ export const putAccountRoleSchema: FastifySchema = {
 }
 
 export const putAccountGroupSchema: FastifySchema = {
-  tags: ['Groups'],
+  tags: ['Account Groups'],
   description: 'Update an account group',
   params: paramsSchema,
   body: accountEditGroupSchema,
@@ -240,6 +268,23 @@ export const putAccountGroupSchema: FastifySchema = {
     },
     404: {
       description: 'The account group was not found',
+      $ref: 'accountNotFound#'
+    }
+  }
+}
+
+export const putAccountMemberSchema: FastifySchema = {
+  tags: ['Account Member'],
+  description: 'Update an account member roles',
+  params: paramsSchema,
+  body: accountEditGroupSchema,
+  response: {
+    204: {
+      description: 'The account member was updated',
+      type: 'null'
+    },
+    404: {
+      description: 'The account member was not found',
       $ref: 'accountNotFound#'
     }
   }
@@ -263,7 +308,7 @@ export const deleteAccountsSchema: FastifySchema = {
 }
 
 export const deleteAccountRoleSchema: FastifySchema = {
-  tags: ['Roles'],
+  tags: ['Account Roles'],
   description: 'Delete an account role',
   params: paramsSchema,
   response: {
@@ -279,7 +324,7 @@ export const deleteAccountRoleSchema: FastifySchema = {
 }
 
 export const deleteAccountGroupSchema: FastifySchema = {
-  tags: ['Groups'],
+  tags: ['Account Groups'],
   description: 'Delete an account group',
   params: paramsSchema,
   response: {
@@ -289,6 +334,38 @@ export const deleteAccountGroupSchema: FastifySchema = {
     },
     404: {
       description: 'The account group was not found',
+      $ref: 'accountNotFound#'
+    }
+  }
+}
+
+export const deleteAccountMemberSchema: FastifySchema = {
+  tags: ['Account Member'],
+  description: 'Delete a member from an account',
+  params: paramsSchema,
+  response: {
+    204: {
+      description: 'The member was removed from the account',
+      type: 'null'
+    },
+    404: {
+      description: 'The account member was not found',
+      $ref: 'accountNotFound#'
+    }
+  }
+}
+
+export const deleteAccountGroupMemberSchema: FastifySchema = {
+  tags: ['Account Groups'],
+  description: 'Delete a member from an account group',
+  params: paramsSchema,
+  response: {
+    204: {
+      description: 'The member was removed from the account group',
+      type: 'null'
+    },
+    404: {
+      description: 'The account group member was not found',
       $ref: 'accountNotFound#'
     }
   }

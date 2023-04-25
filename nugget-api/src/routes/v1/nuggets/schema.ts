@@ -29,7 +29,7 @@ export const nuggetSchema = {
     unPubAt: {type: 'string' },
     nuggetType: {type: 'string' },
   },
-  required: ['name']
+  required: ['nuggetType']
 } as const
 
 export const nuggetEditSchema = {
@@ -50,7 +50,7 @@ export const nuggetPublishSchema = {
     pubAt: {type: 'string' },
     unPubAt: {type: 'string' },
   },
-  required: ['name']
+  required: ['pubAt','unPubAt']
 } as const
 
 // Not found Schema

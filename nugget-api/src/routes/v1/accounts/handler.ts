@@ -65,6 +65,20 @@ export const postAccountGroupHandler: RouteHandler<{
   reply.code(201).header('Location', `/accounts/${newAccountID}`).send(newAccount)
 }
 
+export const postAccountGroupMemberHandler: RouteHandler<{
+  Body: Body
+  Reply: Body
+}> = async function (req, reply) {
+  const newAccountID = accounts.length + 1
+  const newAccount = {
+    id: newAccountID,
+    ...req.body
+  }
+  accounts.push(newAccount)
+
+  reply.code(201).header('Location', `/accounts/${newAccountID}`).send(newAccount)
+}
+
 export const putAccountsHandler: RouteHandler<{
   Params: Params
   Body: Body
@@ -116,6 +130,23 @@ export const putAccountGroupHandler: RouteHandler<{
   }
 }
 
+export const putAccountMemberHandler: RouteHandler<{
+  Params: Params
+  Body: Body
+  Reply: AccountNotFound
+}> = async function (req, reply) {
+  const { accountUid } = req.params
+  const account = accounts.find((p) => p.id == accountUid)
+  if (account) {
+    account.title = req.body.title
+    account.content = req.body.content
+    account.tags = req.body.tags
+    reply.code(204)
+  } else {
+    reply.code(404).send({ error: 'Account not found' })
+  }
+}
+
 export const deleteAccountsHandler: RouteHandler<{
   Params: Params
   Reply: AccountNotFound
@@ -145,6 +176,34 @@ export const deleteAccountRoleHandler: RouteHandler<{
 }
 
 export const deleteAccountGroupHandler: RouteHandler<{
+  Params: Params
+  Reply: AccountNotFound
+}> = async function (req, reply) {
+  const { accountUid } = req.params
+  const account = accounts.find((p) => p.id == accountUid)
+  if (account) {
+    account.deleted = true
+    reply.code(204)
+  } else {
+    reply.code(404).send({ error: 'Account not found' })
+  }
+}
+
+export const deleteAccountMemberHandler: RouteHandler<{
+  Params: Params
+  Reply: AccountNotFound
+}> = async function (req, reply) {
+  const { accountUid } = req.params
+  const account = accounts.find((p) => p.id == accountUid)
+  if (account) {
+    account.deleted = true
+    reply.code(204)
+  } else {
+    reply.code(404).send({ error: 'Account not found' })
+  }
+}
+
+export const deleteAccountGroupMemberHandler: RouteHandler<{
   Params: Params
   Reply: AccountNotFound
 }> = async function (req, reply) {
