@@ -3,7 +3,7 @@ import { useStorage } from '@vueuse/core';
 
 import { useAuthStore } from './auth';
 
-import { izzupApi } from '../boot/axios'
+import { nuggetApi } from '../boot/axios'
 
 import { nanoid } from 'nanoid';
 
@@ -77,7 +77,7 @@ export const useNuggetStore = defineStore('nugget', {
         // Post to new nugget
         const nug = this.openNuggets.get(nuggetUid);
         console.log('NUG', nug)
-        const apiResponse = await izzupApi.post(
+        const apiResponse = await nuggetApi.post(
           '/nugget/'+nuggetUid,
           nug
         );
@@ -99,7 +99,7 @@ export const useNuggetStore = defineStore('nugget', {
         // Post to new nugget
         const nug = this.openNuggets.get(nuggetUid);
         console.log('NUG', nug)
-        const apiResponse = await izzupApi.post(
+        const apiResponse = await nuggetApi.post(
           '/nugget',
           nug
         );
