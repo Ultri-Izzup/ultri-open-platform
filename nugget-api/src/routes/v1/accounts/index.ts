@@ -44,7 +44,7 @@ export default async (fastify: FastifyInstance) => {
   // List authed member accounts
   fastify.get('/', { schema: getAccountsSchema }, getAccountsHandler)
   // Account Records
-  fastify.get('/:accountUid', { schema: getOneAccountSchema }, getOneAccountHandler)
+  fastify.get('/:accountUid/test', { schema: getOneAccountSchema }, getOneAccountHandler)
   fastify.post('/', { schema: postAccountsSchema }, postAccountsHandler)
   fastify.put('/:accountUid', { schema: putAccountsSchema }, putAccountsHandler)
   fastify.delete('/:accountUid', { schema: deleteAccountsSchema }, deleteAccountsHandler)
