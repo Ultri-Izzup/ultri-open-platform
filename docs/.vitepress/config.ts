@@ -38,7 +38,7 @@ export default defineConfig({
           { text: 'Contribute', link: '/development/contribute' },
           { text: 'Swagger', link: '/development/swagger' },         
           { text: 'Local Development', link: '/development/local-dev-install' },
-          { text: 'Nugget Data Server Development', link: '/development/local-data-server-dev' },
+          { text: 'Nugget Server Development', link: '/development/local-data-server-dev' },
           { text: 'Frontend Development', link: '/development/local-frontend-dev' },
           { text: 'Custom Application Development', link: '/development/local-custom-app-dev' }
         ]
@@ -51,7 +51,7 @@ export default defineConfig({
           { text: 'Authentication', link: '/platform/authentication' },
           { text: 'Authorization', link: '/platform/authorization' },
           { text: 'Gateway Server', link: '/platform/gateway' },
-          { text: 'Data Structure', link: '/platform/nuggets' },
+          { text: 'Nuggets', link: '/platform/nuggets' },
           { text: 'Front End', link: '/platform/frontend' },
           { text: 'Security', link: '/platform/security' },
           { text: 'Postgres', link: '/platform/postgres' },
