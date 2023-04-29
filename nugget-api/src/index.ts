@@ -23,14 +23,11 @@ fastify.register(autoLoad, {
 fastify.register(autoLoad, {
   dir: join(__dirname, 'plugins')
 })
-// Register a service layer for the routes to access the raw components.
-//fastify.register(autoLoad, {
-//  dir: join(__dirname, 'services')
-//})
 // Route requests to services, using defined schemas for request and response
 fastify.register(autoLoad, {
   dir: join(__dirname, 'routes')
 })
+
 
 // Start server
 const start = async () => {

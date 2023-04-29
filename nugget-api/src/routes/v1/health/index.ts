@@ -12,5 +12,5 @@ export default async (fastify: FastifyInstance) => {
   // fastify.addSchema(statusSchema)
   fastify.get('/', { schema: getStatusSchema }, getBaseHandler)
   fastify.get('/postgres', { schema: getStatusSchema }, getPostgresHandler)
-  fastify.post('/redis', { schema: getStatusSchema }, getRedisHandler)
+  fastify.get('/redis', { schema: getStatusSchema }, getRedisHandler)
 }

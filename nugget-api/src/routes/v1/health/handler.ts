@@ -53,5 +53,16 @@ export const getPostgresHandler: RouteHandler<{
 export const getRedisHandler: RouteHandler<{
   Reply: Reply 
 }> = async function (req, reply) {
-  reply.send({ status: 'up' })
+
+  const redis = reply.server.redis;
+
+  let status = "FAIL";
+
+  const resp = await redis.ping();
+
+  if(resp == 'PONG') {
+    status = 'OK'
+  }
+
+  reply.send({ status: status })
 }
