@@ -1,10 +1,11 @@
 import fastifyEnv from "@fastify/env";
 import fastifyPlugin from "fastify-plugin";
 
-async function configPlugin(server: any, options: any, done: any) {
+async function configPlugin(fastify: any, options: any, done: any) {
   const schema = {
     type: "object",
     required: [
+      "HTTP_HOST",
       "HTTP_PORT",
       "SUPERTOKENS_CONNECTION_URI",
       "SUPERTOKENS_API_KEY",
@@ -18,11 +19,12 @@ async function configPlugin(server: any, options: any, done: any) {
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_ID",
       "SUPERTOKENS_3RD_PARTY_GITHUB_CLIENT_SECRET",
       "CORS_ORIGIN_URL",
+      "POSTGRES_URI"
     ],
     properties: {
       HTTP_PORT: {
         type: "number",
-        default: 3001,
+        default: 3005,
       },
       HTTP_HOST: {
         type: "string",
@@ -85,6 +87,9 @@ async function configPlugin(server: any, options: any, done: any) {
       SMTP_SECURE: {
         type: "boolean",
       },
+      POSTGRES_URI: {
+        type: "string",
+      },
     },
   };
 
@@ -104,7 +109,7 @@ async function configPlugin(server: any, options: any, done: any) {
     removeAdditional: true,
   };
 
-  return fastifyEnv(server, configOptions, done);
+  return fastifyEnv(fastify, configOptions, done);
 }
 
 export default fastifyPlugin(configPlugin);

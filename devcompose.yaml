@@ -65,12 +65,10 @@ services:
     networks:
       - ultri-net
     volumes:
+      - "./nugget-api/node_modules:/usr/src/app/node_modules"
       - "./nugget-api/src/plugins:/usr/src/app/src/plugins"
       - "./nugget-api/src/routes:/usr/src/app/src/routes"
       - "./nugget-api/src/index.ts:/usr/src/app/src/index.ts"
-      #- "./nugget-api/build/plugins:/usr/src/app/plugins"
-      #- "./nugget-api/build/routes:/usr/src/app/routes"
-      #- "./nugget-api/build/index.js:/usr/src/app/index.js"
     depends_on:
       - redis
       - postgres

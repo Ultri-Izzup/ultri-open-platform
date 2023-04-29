@@ -1,33 +1,16 @@
-import type { FastifyPluginAsync } from 'fastify'
+import type { FastifyInstance } from 'fastify'
+import {
+  getStatusSchema,
+} from './schema'
+import {
+  getBaseHandler,
+  getPostgresHandler,
+  getRedisHandler
+} from './handler'
 
-//import Passwordless from "supertokens-node/recipe/passwordless/index.js";
-import { verifySession } from "supertokens-node/recipe/session/framework/fastify/index.js";
-// import st from "supertokens-node/framework/fastify/index.js";
-// const { SessionRequest } = st;
-
-const health: FastifyPluginAsync = async (fastify): Promise<void> => {
-  // Note: using an arrow function will break the binding of this to the FastifyInstance.
-  fastify.get('/', {
-    preHandler: verifySession(),
-    schema: {
-      description: "This is an endpoint for application health check",
-      tags: ["Health"],
-      response: {
-        200: {
-          description: "Success Response",
-          type: "object",
-          properties: {
-            status: { type: "string" },
-          },
-        },
-      },
-    },
-  },
-  async function (req, reply) {
-    return {
-        status: "up",
-      };
-  })
+export default async (fastify: FastifyInstance) => {
+  // fastify.addSchema(statusSchema)
+  fastify.get('/', { schema: getStatusSchema }, getBaseHandler)
+  fastify.get('/postgres', { schema: getStatusSchema }, getPostgresHandler)
+  fastify.post('/redis', { schema: getStatusSchema }, getRedisHandler)
 }
-
-export default health
