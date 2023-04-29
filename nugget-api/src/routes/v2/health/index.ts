@@ -5,7 +5,7 @@ const health: FastifyPluginAsync = async (fastify): Promise<void> => {
   fastify.get('/', {
     schema: {
       description: "This is an endpoint for application health check",
-      tags: ["health"],
+      tags: ["Health"],
       response: {
         200: {
           description: "Success Response",

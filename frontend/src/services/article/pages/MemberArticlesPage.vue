@@ -10,7 +10,7 @@
 
 import { useI18n } from "vue-i18n";
 
-import { izzupApi } from 'boot/axios'
+import { nuggetApi } from 'boot/axios'
 
 import {  onMounted } from "vue";
 
@@ -22,7 +22,7 @@ const auth = useAuthStore();
 console.log(auth.member)
 
 onMounted(async () => {
-  await izzupApi
+  await nuggetApi
     .get('/nuggets/member?t=article')
     .then(response => {
       console.log(response)

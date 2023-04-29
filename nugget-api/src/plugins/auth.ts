@@ -15,7 +15,6 @@ import {
 } from "supertokens-node/framework/fastify/index.js";
 
 async function auth(server: any, options: any) {
-  console.log('WTF', server.config)
   supertokens.init({
     framework: "fastify",
     supertokens: {

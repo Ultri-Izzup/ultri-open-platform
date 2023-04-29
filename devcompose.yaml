@@ -56,7 +56,7 @@ services:
   nuggets:
     # image: ultri/open-platform-api:latest
     image: nugget-api
-    command: ["npm", "run", "dev"]
+    command: ["tsx", "watch", "src"]
     # command: ["npm", "run", "dev:debug"]
     container_name: ultri-nugget-server
     ports:
@@ -65,9 +65,10 @@ services:
     networks:
       - ultri-net
     volumes:
-      - "./nugget-api/src/plugins:/usr/src/app/plugins"
-      - "./nugget-api/src/routes:/usr/src/app/routes"
-      - "./nugget-api/src/index.ts:/usr/src/app/index.ts"
+      - "./nugget-api/node_modules:/usr/src/app/node_modules"
+      - "./nugget-api/src/plugins:/usr/src/app/src/plugins"
+      - "./nugget-api/src/routes:/usr/src/app/src/routes"
+      - "./nugget-api/src/index.ts:/usr/src/app/src/index.ts"
     depends_on:
       - redis
       - postgres

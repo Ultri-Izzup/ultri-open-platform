@@ -12,7 +12,7 @@ export default fp(async (fastify) => {
       },
       servers: [
         {
-          url: 'http://localhost'
+          url: 'http://0.0.0.0:3005/',
         }
       ]
     },

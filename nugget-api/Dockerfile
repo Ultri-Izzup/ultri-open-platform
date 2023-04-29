@@ -8,6 +8,8 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
+RUN npm install --global tsx
+
 RUN npm install
 # If you are building your code for production
 # RUN npm ci --omit=dev
@@ -15,9 +17,9 @@ RUN npm install
 # Bundle app source
 COPY . .
 
-# RUN npm run build
+RUN npm run build
 
-# USER node
+USER node
 
 # Start command
-# CMD [ "node", "./build/index.js" ]
+# CMD [ "npm", "run", "dev" ]

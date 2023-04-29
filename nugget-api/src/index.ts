@@ -15,16 +15,21 @@ const fastify = Fastify({
     }
   }
 })
+// Register Configs first so anything else can access
+fastify.register(autoLoad, {
+  dir: join(__dirname, 'config')
+})
+// Register the raw building blocks of the fastify app.
 fastify.register(autoLoad, {
   dir: join(__dirname, 'plugins')
 })
-
+// Route requests to services, using defined schemas for request and response
 fastify.register(autoLoad, {
   dir: join(__dirname, 'routes')
 })
 
-console.log(fastify.config)
 
+// Start server
 const start = async () => {
   try {
     await fastify.listen({ port: 3005, host: '0.0.0.0' })
